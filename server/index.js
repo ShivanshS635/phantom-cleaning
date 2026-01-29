@@ -42,7 +42,7 @@ app.use("/api/jobs", require("./routes/job.routes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/tasks", require("./routes/task.routes"));
-
+app.use("/api/expenses", require("./routes/expenseRoutes"));
 /* ========== SERVER ========== */
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {

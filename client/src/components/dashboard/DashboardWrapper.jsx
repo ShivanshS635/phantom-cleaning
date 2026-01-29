@@ -2,9 +2,12 @@ import { useState, useEffect } from "react";
 import AdminUnlockModal from "../admin/AdminUnlockModal";
 import DashboardPanel from "./DashboardPanel";
 import { isAdminUnlocked, lockAdmin } from "../../utils/adminAuth";
+import { useNavigate } from "react-router-dom";
 
 export default function DashboardWrapper() {
   const [unlocked, setUnlocked] = useState(isAdminUnlocked());
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -21,7 +24,7 @@ export default function DashboardWrapper() {
     return (
       <AdminUnlockModal
         onSuccess={() => setUnlocked(true)}
-        onClose={() => window.history.back()}
+        onClose={() => navigate(-1)}
       />
     );
   }

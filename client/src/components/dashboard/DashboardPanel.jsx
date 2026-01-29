@@ -2,13 +2,20 @@ import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import DashboardCharts from "./DashboardCharts";
 import DashboardFilters from "./DashboardFilters";
+import ExpensesPanel from "./ExpensesPanel";
 
 export default function DashboardPanel({ onLock }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expenses, setExpenses] = useState([]);
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
+  const totalExpenses = expenses.reduce(
+    (sum, e) => sum + Number(e.amount || 0),
+    0
+  );
 
   useEffect(() => {
     fetchJobs();
@@ -32,23 +39,21 @@ export default function DashboardPanel({ onLock }) {
     if (toDate && d > new Date(toDate)) return false;
     return true;
   });
-
   const stats = {
     totalJobs: filteredJobs.length,
     completedJobs: filteredJobs.filter(j => j.status === "Completed").length,
     todayJobs: filteredJobs.filter(
       j => j.date === new Date().toISOString().split("T")[0]
     ).length,
-    totalRevenue: filteredJobs
-      .filter(j => j.status === "Completed")
-      .reduce((sum, j) => sum + Number(j.price || 0), 0),
-    activeCleaners: new Set(
+    totalRevenue:
       filteredJobs
-        .filter(j => j.assignedEmployee)
-        .map(j => j.assignedEmployee._id)
+        .filter(j => j.status === "Completed")
+        .reduce((sum, j) => sum + Number(j.price || 0), 0) -
+      totalExpenses,
+    activeCleaners: new Set(
+      filteredJobs.filter(j => j.assignedEmployee).map(j => j.assignedEmployee._id)
     ).size
   };
-
   if (loading) return <p>Loading dashboard...</p>;
 
   return (
@@ -83,6 +88,8 @@ export default function DashboardPanel({ onLock }) {
         <StatCard title="Revenue" value={`$${stats.totalRevenue}`} color="purple" icon="💰" />
         <StatCard title="Cleaners" value={stats.activeCleaners} color="pink" icon="👷" />
       </div>
+
+      <ExpensesPanel onChange={setExpenses} />
 
       {/* CHARTS */}
       <div className="bg-white rounded-xl shadow p-4">

@@ -2,62 +2,114 @@ const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
 
-const FILE_PATH = path.join(__dirname, "../PhantomReports.xlsx");
+/* ============================
+   CONFIG
+============================ */
 
 const STATES = ["Sydney", "Melbourne", "Adelaide", "Perth", "Brisbane"];
 
-function getWeekNumber(date) {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+const EXPORT_DIR = path.join(__dirname, "../exports");
+
+/* ============================
+   ENSURE EXPORTS FOLDER
+============================ */
+
+function ensureExportsDir() {
+  try {
+    if (!fs.existsSync(EXPORT_DIR)) {
+      fs.mkdirSync(EXPORT_DIR, { recursive: true });
+      console.log("📁 exports folder created");
+    }
+  } catch (err) {
+    console.error("❌ Failed to create exports folder", err);
+    throw err;
+  }
 }
 
-async function writeJobToExcel(job) {
-  const workbook = new ExcelJS.Workbook();
+/* ============================
+   HELPERS
+============================ */
 
-  if (fs.existsSync(FILE_PATH)) {
-    await workbook.xlsx.readFile(FILE_PATH);
+function getMonthFileName(dateStr) {
+  const d = new Date(dateStr);
+  const month = d.toLocaleString("default", { month: "long" });
+  const year = d.getFullYear();
+  return `PhantomCleaning_${month}_${year}.xlsx`;
+}
+
+function getWeekOfMonth(date) {
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+  const adjusted = date.getDate() + firstDay.getDay();
+  return Math.ceil(adjusted / 7);
+}
+
+function resolveState(state) {
+  return STATES.includes(state) ? state : "Other";
+}
+
+/* ============================
+   MAIN EXCEL SYNC
+============================ */
+
+async function upsertJob(job) {
+  ensureExportsDir(); // ✅ ALWAYS SAFE
+
+  const workbook = new ExcelJS.Workbook();
+  const fileName = getMonthFileName(job.date);
+  const filePath = path.join(EXPORT_DIR, fileName);
+
+  if (fs.existsSync(filePath)) {
+    await workbook.xlsx.readFile(filePath);
   }
 
-  // create sheets if not exist
-  STATES.forEach((state) => {
-    let sheet = workbook.getWorksheet(state);
-    if (!sheet) {
-      sheet = workbook.addWorksheet(state);
+  const stateName = resolveState(job.state);
 
-      sheet.addRow([
-        "Date",
-        "Week",
-        "Customer",
-        "Phone",
-        "Address",
-        "Price",
-        "Cleaner",
-        "Status"
-      ]);
-    }
-  });
+  let sheet = workbook.getWorksheet(stateName);
 
-  const sheet = workbook.getWorksheet(job.state);
-  if (!sheet) return;
+  if (!sheet) {
+    sheet = workbook.addWorksheet(stateName);
+    sheet.columns = [
+      { header: "Job ID", key: "_id", width: 26 },
+      { header: "Date", key: "date", width: 14 },
+      { header: "Week", key: "week", width: 10 },
+      { header: "Customer", key: "customer", width: 22 },
+      { header: "Phone", key: "phone", width: 16 },
+      { header: "Address", key: "address", width: 32 },
+      { header: "Cleaner", key: "cleaner", width: 22 },
+      { header: "Status", key: "status", width: 14 },
+      { header: "Price", key: "price", width: 12 }
+    ];
+  }
 
-  const today = new Date();
-  const week = `Week ${getWeekNumber(today)}`;
+  const jobDate = new Date(job.date);
 
-  sheet.addRow([
-    today.toLocaleDateString(),       
-    week,                 
-    job.customerName,
-    job.phone,                         
-    job.address,                        
-    job.price,                         
-    job.assignedEmployee?.name || "N/A",
-    job.status                          
-  ]);
+  const rowData = {
+    _id: job._id.toString(),
+    date: jobDate.toLocaleDateString(),
+    week: `Week ${getWeekOfMonth(jobDate)}`,
+    customer: job.customerName,
+    phone: job.phone,
+    address: job.address,
+    cleaner: job.assignedEmployee?.name || "Unassigned",
+    status: job.status,
+    price: Number(job.price || 0)
+  };
 
-  await workbook.xlsx.writeFile(FILE_PATH);
+  // 🔁 UPSERT BY JOB ID
+  const rows = sheet.getRows(2, sheet.rowCount - 1) || [];
+  const existingRow = rows.find(
+    (r) => r.getCell(1).value === rowData._id
+  );
+
+  if (existingRow) {
+    Object.values(rowData).forEach((val, idx) => {
+      existingRow.getCell(idx + 1).value = val;
+    });
+  } else {
+    sheet.addRow(rowData);
+  }
+
+  await workbook.xlsx.writeFile(filePath);
 }
 
-module.exports = { writeJobToExcel };
+module.exports = { upsertJob };
