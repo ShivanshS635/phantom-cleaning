@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../../api/axios";
 
 export default function ExpensesPanel({ onChange }) {
@@ -9,21 +9,29 @@ export default function ExpensesPanel({ onChange }) {
     date: ""
   });
 
-  const fetchExpenses = async () => {
-    const res = await api.get("/expenses");
-    setExpenses(res.data);
-    onChange(res.data);
-  };
+  const fetchExpenses = useCallback(async () => {
+    try {
+      const res = await api.get("/expenses");
+      setExpenses(res.data);
+      onChange?.(res.data);
+    } catch (err) {
+      console.error("Failed to fetch expenses", err);
+    }
+  }, [onChange]);
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [fetchExpenses]);
 
   const addExpense = async (e) => {
     e.preventDefault();
-    await api.post("/expenses", form);
-    setForm({ title: "", amount: "", date: "" });
-    fetchExpenses();
+    try {
+      await api.post("/expenses", form);
+      setForm({ title: "", amount: "", date: "" });
+      fetchExpenses();
+    } catch (err) {
+      console.error("Failed to add expense", err);
+    }
   };
 
   return (
@@ -35,7 +43,7 @@ export default function ExpensesPanel({ onChange }) {
           placeholder="Title"
           className="border p-2 rounded"
           value={form.title}
-          onChange={e => setForm({ ...form, title: e.target.value })}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
           required
         />
         <input
@@ -43,14 +51,14 @@ export default function ExpensesPanel({ onChange }) {
           placeholder="Amount"
           className="border p-2 rounded"
           value={form.amount}
-          onChange={e => setForm({ ...form, amount: e.target.value })}
+          onChange={(e) => setForm({ ...form, amount: e.target.value })}
           required
         />
         <input
           type="date"
           className="border p-2 rounded"
           value={form.date}
-          onChange={e => setForm({ ...form, date: e.target.value })}
+          onChange={(e) => setForm({ ...form, date: e.target.value })}
           required
         />
         <button className="col-span-3 bg-black text-white py-2 rounded">
@@ -59,7 +67,7 @@ export default function ExpensesPanel({ onChange }) {
       </form>
 
       <ul className="space-y-2">
-        {expenses.map(e => (
+        {expenses.map((e) => (
           <li key={e._id} className="flex justify-between text-sm">
             <span>{e.title}</span>
             <span className="font-medium text-red-600">-${e.amount}</span>
