@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import api from "../../api/axios";
+import { showSuccess, showError } from "../../utils/toast";
 
 export default function ExpensesPanel({ onChange }) {
   const [expenses, setExpenses] = useState([]);
@@ -15,7 +16,7 @@ export default function ExpensesPanel({ onChange }) {
       setExpenses(res.data);
       onChange?.(res.data);
     } catch (err) {
-      console.error("Failed to fetch expenses", err);
+      showError(err.response?.data?.message || "Failed to fetch expenses");
     }
   }, [onChange]);
 
@@ -27,10 +28,11 @@ export default function ExpensesPanel({ onChange }) {
     e.preventDefault();
     try {
       await api.post("/expenses", form);
+      showSuccess("Expense added successfully");
       setForm({ title: "", amount: "", date: "" });
       fetchExpenses();
     } catch (err) {
-      console.error("Failed to add expense", err);
+      showError(err.response?.data?.message || "Failed to add expense");
     }
   };
 

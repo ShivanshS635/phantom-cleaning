@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
+import { showSuccess, showError } from "../../utils/toast";
 
 export default function JobDrawer({ job, onClose, onRefresh }) {
   const [employees, setEmployees] = useState([]);
@@ -23,9 +24,10 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
       await api.put(`/jobs/${job._id}/assign`, {
         employeeId: selectedCleaner || null
       });
+      showSuccess("Cleaner assigned successfully");
       onRefresh();
     } catch (err) {
-      alert("Failed to update cleaner");
+      showError(err.response?.data?.message || "Failed to update cleaner");
     } finally {
       setLoading(false);
     }
@@ -36,10 +38,11 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
     try {
       setLoading(true);
       await api.put(`/jobs/${job._id}/status`, { status });
+      showSuccess("Job status updated successfully");
       onRefresh();
       onClose();
     } catch (err) {
-      alert("Failed to update status");
+      showError(err.response?.data?.message || "Failed to update status");
     } finally {
       setLoading(false);
     }

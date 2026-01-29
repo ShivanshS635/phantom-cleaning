@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../api/axios";
+import { showSuccess, showError } from "../utils/toast";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -23,10 +24,10 @@ export default function Signup() {
       });
 
       localStorage.setItem("token", res.data.token);
-      alert("Signup successful! Logging you in.");
+      showSuccess("Signup successful! Logging you in.");
       window.location.href = "/";
     } catch (err) {
-      alert(err.response?.data?.message || "Signup failed");
+      showError(err.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
     }

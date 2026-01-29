@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
+import { showSuccess, showError } from "../../utils/toast";
 
 export default function EmployeesPanel() {
   const [employees, setEmployees] = useState([]);
@@ -16,8 +17,8 @@ export default function EmployeesPanel() {
     try {
       const res = await api.get("/employees");
       setEmployees(res.data);
-    } catch {
-      alert("Failed to load employees");
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to load employees");
     }
   };
 
@@ -29,12 +30,12 @@ export default function EmployeesPanel() {
     e.preventDefault();
     try {
       await api.post("/employees", form);
-      alert("Employee added");
+      showSuccess("Employee added successfully");
       setShowForm(false);
       setForm({ name: "", email: "", phone: "", role: "Cleaner" });
       fetchEmployees();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed");
+      showError(err.response?.data?.message || "Failed to add employee");
     }
   };
 

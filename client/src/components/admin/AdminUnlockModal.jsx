@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../../api/axios";
+import { showSuccess, showError } from "../../utils/toast";
 import { unlockAdmin } from "../../utils/adminAuth";
 
 export default function AdminUnlockModal({ onSuccess, onClose }) {
@@ -14,10 +15,11 @@ export default function AdminUnlockModal({ onSuccess, onClose }) {
         adminPassword: password
       });
 
+      showSuccess("Admin verified successfully");
       unlockAdmin();
       onSuccess();
-    } catch {
-      alert("Invalid admin password");
+    } catch (err) {
+      showError(err.response?.data?.message || "Invalid admin password");
     } finally {
       setLoading(false);
     }

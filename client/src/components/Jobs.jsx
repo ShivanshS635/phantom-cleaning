@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { showSuccess, showError } from "../utils/toast";
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -27,7 +28,7 @@ export default function Jobs() {
       const res = await api.get("/jobs");
       setJobs(res.data);
     } catch (err) {
-      alert("Failed to load jobs");
+      showError(err.response?.data?.message || "Failed to load jobs");
     }
   };
 
@@ -36,7 +37,7 @@ export default function Jobs() {
       const res = await api.get("/employees");
       setEmployees(res.data);
     } catch (err) {
-      alert("Failed to load employees");
+      showError(err.response?.data?.message || "Failed to load employees");
     }
   };
 
@@ -51,7 +52,7 @@ export default function Jobs() {
 
     try {
       await api.post("/jobs", form);
-      alert("Job added successfully");
+      showSuccess("Job added successfully");
       setShowForm(false);
       setForm({
         customerName: "",
@@ -68,16 +69,17 @@ export default function Jobs() {
       
       fetchJobs();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to add job");
+      showError(err.response?.data?.message || "Failed to add job");
     }
   };
 
   const updateStatus = async (id, status) => {
     try {
       await api.put(`/jobs/${id}/status`, { status });
+      showSuccess("Job status updated");
       fetchJobs();
     } catch (err) {
-      alert("Failed to update status");
+      showError(err.response?.data?.message || "Failed to update status");
     }
   };
 

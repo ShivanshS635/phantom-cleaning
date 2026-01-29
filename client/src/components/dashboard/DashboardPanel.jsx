@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
+import { showError } from "../../utils/toast";
 import DashboardCharts from "./DashboardCharts";
 import DashboardFilters from "./DashboardFilters";
 import ExpensesPanel from "./ExpensesPanel";
@@ -25,8 +26,8 @@ export default function DashboardPanel({ onLock }) {
     try {
       const res = await api.get("/jobs");
       setJobs(res.data.data || []);
-    } catch {
-      alert("Failed to load dashboard");
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to load dashboard");
     } finally {
       setLoading(false);
     }

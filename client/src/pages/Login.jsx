@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ ADD THIS
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { showSuccess, showError } from "../utils/toast";
 
 export default function Login() {
   const navigate = useNavigate(); // ✅ ADD THIS
@@ -19,10 +20,11 @@ export default function Login() {
       const res = await api.post("/auth/login", { email, password });
 
       localStorage.setItem("token", res.data.token);
+      showSuccess("Login successful!");
 
-      navigate("/", { replace: true }); // ✅ SEE FIX 2 BELOW
+      navigate("/", { replace: true });
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      showError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }

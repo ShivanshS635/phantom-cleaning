@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../api/axios";
+import { showError } from "../utils/toast";
 
 const AuthContext = createContext(null);
 
@@ -21,6 +22,7 @@ export function AuthProvider({ children }) {
         // backend verifies token & returns user
         setUser(res.data);
       } catch (err) {
+        showError("Session expired. Please login again.");
         localStorage.removeItem("token");
         setUser(null);
       } finally {
