@@ -2,36 +2,31 @@ const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
 
-/* ============================
+/* =========================
    CONFIG
-============================ */
+========================= */
 
 const STATES = ["Sydney", "Melbourne", "Adelaide", "Perth", "Brisbane"];
-
 const EXPORT_DIR = path.join(__dirname, "../exports");
 
-/* ============================
-   ENSURE EXPORTS FOLDER
-============================ */
+/* =========================
+   MUTEX (CRITICAL)
+========================= */
+
+let writeQueue = Promise.resolve();
+
+/* =========================
+   HELPERS
+========================= */
 
 function ensureExportsDir() {
-  try {
-    if (!fs.existsSync(EXPORT_DIR)) {
-      fs.mkdirSync(EXPORT_DIR, { recursive: true });
-      console.log("📁 exports folder created");
-    }
-  } catch (err) {
-    console.error("❌ Failed to create exports folder", err);
-    throw err;
+  if (!fs.existsSync(EXPORT_DIR)) {
+    fs.mkdirSync(EXPORT_DIR, { recursive: true });
   }
 }
 
-/* ============================
-   HELPERS
-============================ */
-
 function getMonthFileName(dateStr) {
-  const d = new Date(dateStr);
+  const d = new Date(dateStr || new Date());
   const month = d.toLocaleString("default", { month: "long" });
   const year = d.getFullYear();
   return `PhantomCleaning_${month}_${year}.xlsx`;
@@ -47,69 +42,71 @@ function resolveState(state) {
   return STATES.includes(state) ? state : "Other";
 }
 
-/* ============================
-   MAIN EXCEL SYNC
-============================ */
+/* =========================
+   MAIN UPSERT
+========================= */
 
 async function upsertJob(job) {
-  ensureExportsDir(); // ✅ ALWAYS SAFE
+  writeQueue = writeQueue.then(async () => {
+    ensureExportsDir();
 
-  const workbook = new ExcelJS.Workbook();
-  const fileName = getMonthFileName(job.date);
-  const filePath = path.join(EXPORT_DIR, fileName);
+    const workbook = new ExcelJS.Workbook();
+    const fileName = getMonthFileName(job.date);
+    const filePath = path.join(EXPORT_DIR, fileName);
 
-  if (fs.existsSync(filePath)) {
-    await workbook.xlsx.readFile(filePath);
-  }
+    if (fs.existsSync(filePath)) {
+      await workbook.xlsx.readFile(filePath);
+    }
 
-  const stateName = resolveState(job.state);
+    const stateName = resolveState(job.state);
+    let sheet = workbook.getWorksheet(stateName);
 
-  let sheet = workbook.getWorksheet(stateName);
+    if (!sheet) {
+      sheet = workbook.addWorksheet(stateName);
+      sheet.columns = [
+        { header: "Job ID", key: "id", width: 26 },
+        { header: "Date", key: "date", width: 14 },
+        { header: "Week", key: "week", width: 10 },
+        { header: "Customer", key: "customer", width: 22 },
+        { header: "Phone", key: "phone", width: 16 },
+        { header: "Address", key: "address", width: 32 },
+        { header: "Cleaner", key: "cleaner", width: 22 },
+        { header: "Status", key: "status", width: 14 },
+        { header: "Price", key: "price", width: 12 }
+      ];
+    }
 
-  if (!sheet) {
-    sheet = workbook.addWorksheet(stateName);
-    sheet.columns = [
-      { header: "Job ID", key: "_id", width: 26 },
-      { header: "Date", key: "date", width: 14 },
-      { header: "Week", key: "week", width: 10 },
-      { header: "Customer", key: "customer", width: 22 },
-      { header: "Phone", key: "phone", width: 16 },
-      { header: "Address", key: "address", width: 32 },
-      { header: "Cleaner", key: "cleaner", width: 22 },
-      { header: "Status", key: "status", width: 14 },
-      { header: "Price", key: "price", width: 12 }
-    ];
-  }
+    const jobDate = new Date(job.date);
 
-  const jobDate = new Date(job.date);
+    const rowData = {
+      id: job._id.toString(),
+      date: jobDate.toLocaleDateString(),
+      week: `Week ${getWeekOfMonth(jobDate)}`,
+      customer: job.customerName,
+      phone: job.phone,
+      address: job.address,
+      cleaner: job.assignedEmployee?.name || "Unassigned",
+      status: job.status,
+      price: Number(job.price || 0)
+    };
 
-  const rowData = {
-    _id: job._id.toString(),
-    date: jobDate.toLocaleDateString(),
-    week: `Week ${getWeekOfMonth(jobDate)}`,
-    customer: job.customerName,
-    phone: job.phone,
-    address: job.address,
-    cleaner: job.assignedEmployee?.name || "Unassigned",
-    status: job.status,
-    price: Number(job.price || 0)
-  };
+    const rows = sheet.getRows(2, sheet.rowCount - 1) || [];
+    const existingRow = rows.find(r => r.getCell(1).value === rowData.id);
 
-  // 🔁 UPSERT BY JOB ID
-  const rows = sheet.getRows(2, sheet.rowCount - 1) || [];
-  const existingRow = rows.find(
-    (r) => r.getCell(1).value === rowData._id
-  );
+    if (existingRow) {
+      Object.values(rowData).forEach((val, idx) => {
+        existingRow.getCell(idx + 1).value = val;
+      });
+    } else {
+      sheet.addRow(rowData);
+    }
 
-  if (existingRow) {
-    Object.values(rowData).forEach((val, idx) => {
-      existingRow.getCell(idx + 1).value = val;
-    });
-  } else {
-    sheet.addRow(rowData);
-  }
+    await workbook.xlsx.writeFile(filePath);
+  }).catch(err => {
+    console.error("❌ Excel write failed:", err);
+  });
 
-  await workbook.xlsx.writeFile(filePath);
+  return writeQueue;
 }
 
 module.exports = { upsertJob };

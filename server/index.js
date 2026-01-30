@@ -10,16 +10,27 @@ connectDB();
 
 const app = express();
 
-/* ========== SECURITY ========== */
+/* =========================
+   TRUST PROXY (RENDER FIX)
+========================= */
+app.set("trust proxy", 1);
+
+/* =========================
+   SECURITY
+========================= */
 app.use(helmet());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false
 });
-app.use(limiter);
+app.use("/api", limiter);
 
-/* ========== CORS ========== */
+/* =========================
+   CORS
+========================= */
 const allowedOrigins = [
   "https://phantom-cleaning.vercel.app",
   "http://localhost:3000"
@@ -27,15 +38,12 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // allow requests with no origin (mobile apps, postman)
+    origin(origin, callback) {
       if (!origin) return callback(null, true);
-
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+        return callback(null, true);
       }
+      return callback(new Error("CORS not allowed"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -43,11 +51,16 @@ app.use(
   })
 );
 
-app.use(express.json());
+/* =========================
+   BODY PARSER
+========================= */
+app.use(express.json({ limit: "10mb" }));
 
-/* ========== ROUTES ========== */
+/* =========================
+   ROUTES
+========================= */
 app.get("/", (req, res) => {
-  res.send("Phantom Cleaning Backend Running");
+  res.send("✅ Phantom Cleaning Backend Running");
 });
 
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -57,8 +70,11 @@ app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/tasks", require("./routes/task.routes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
-/* ========== SERVER ========== */
+
+/* =========================
+   SERVER
+========================= */
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
