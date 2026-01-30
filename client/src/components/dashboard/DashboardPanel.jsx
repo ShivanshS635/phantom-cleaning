@@ -4,6 +4,7 @@ import { showError } from "../../utils/toast";
 import DashboardCharts from "./DashboardCharts";
 import DashboardFilters from "./DashboardFilters";
 import ExpensesPanel from "./ExpensesPanel";
+import MonthlyReportDownload from "./MonthlyReportDownload";
 
 export default function DashboardPanel({ onLock }) {
   const [jobs, setJobs] = useState([]);
@@ -40,6 +41,7 @@ export default function DashboardPanel({ onLock }) {
     if (toDate && d > new Date(toDate)) return false;
     return true;
   });
+
   const stats = {
     totalJobs: filteredJobs.length,
     completedJobs: filteredJobs.filter(j => j.status === "Completed").length,
@@ -55,22 +57,29 @@ export default function DashboardPanel({ onLock }) {
       filteredJobs.filter(j => j.assignedEmployee).map(j => j.assignedEmployee._id)
     ).size
   };
+
   if (loading) return <p>Loading dashboard...</p>;
 
   return (
     <div className="space-y-6">
-      {/* TOP BAR */}
-      <div className="flex justify-between items-center">
+
+      {/* 🔝 TOP BAR */}
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">
           📊 Admin Dashboard
         </h1>
 
-        <button
-          onClick={onLock}
-          className="bg-red-600 hover:bg-red-700 transition text-white px-4 py-2 rounded-lg shadow"
-        >
-          🔒 Lock
-        </button>
+        <div className="flex gap-2 items-center">
+          {/* ✅ Monthly Excel Download (BEST PLACE) */}
+          <MonthlyReportDownload />
+
+          <button
+            onClick={onLock}
+            className="bg-red-600 hover:bg-red-700 transition text-white px-4 py-2 rounded-lg shadow"
+          >
+            🔒 Lock
+          </button>
+        </div>
       </div>
 
       {/* FILTERS */}
@@ -90,6 +99,7 @@ export default function DashboardPanel({ onLock }) {
         <StatCard title="Cleaners" value={stats.activeCleaners} color="pink" icon="👷" />
       </div>
 
+      {/* EXPENSES */}
       <ExpensesPanel onChange={setExpenses} />
 
       {/* CHARTS */}

@@ -70,6 +70,7 @@ app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/tasks", require("./routes/task.routes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
+app.use("/api/reports", require("./routes/reportRoutes"));
 
 /* =========================
    SERVER
