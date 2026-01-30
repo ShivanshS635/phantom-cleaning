@@ -1,8 +1,6 @@
 import { useState } from "react";
 
 export default function MonthlyReportDownload() {
-    const [month, setMonth] = useState("");
-
     const downloadMonthlyReport = async (month) => {
         try {
             const token = localStorage.getItem("token"); // or memory store
@@ -35,17 +33,6 @@ export default function MonthlyReportDownload() {
             alert("Failed to download report");
             console.error(err);
         }
-    };
-
-
-    const downloadReport = () => {
-        if (!month) {
-            alert("Please select a month");
-            return;
-        }
-
-        const url = `${process.env.REACT_APP_API_URL}/api/reports/monthly?month=${month}`;
-        window.open(url, "_blank");
     };
 
     return (
