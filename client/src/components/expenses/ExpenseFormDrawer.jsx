@@ -5,13 +5,11 @@ import {
   DollarSign, 
   Calendar, 
   Tag, 
-  FileText,
   Upload,
   Loader2,
   Receipt,
   CheckCircle,
   CreditCard,
-  User,
   Building
 } from "lucide-react";
 import api from "../../api/axios";

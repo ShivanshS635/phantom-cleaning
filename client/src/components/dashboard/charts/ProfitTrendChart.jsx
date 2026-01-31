@@ -2,9 +2,7 @@ import { useState } from "react";
 import { 
   AreaChart, 
   Area, 
-  LineChart, 
-  Line, 
-  BarChart, 
+  Line,
   Bar,
   XAxis, 
   YAxis, 
@@ -14,7 +12,7 @@ import {
   Legend,
   ComposedChart
 } from "recharts";
-import { TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 
 export default function ProfitTrendChart({ jobs, expenses }) {
   const [view, setView] = useState("profit"); // "profit" | "revenue" | "expenses"
@@ -140,37 +138,6 @@ export default function ProfitTrendChart({ jobs, expenses }) {
           name="Profit"
         />
       </ComposedChart>
-    </ResponsiveContainer>
-  );
-
-  // View 2: Comparison Bar Chart
-  const renderComparisonChart = () => (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-        <XAxis dataKey="date" />
-        <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
-        <Tooltip content={<CustomTooltip />} />
-        <Legend />
-        <Bar 
-          dataKey="revenue" 
-          fill="#10b981" 
-          name="Revenue"
-          barSize={20}
-        />
-        <Bar 
-          dataKey="expenses" 
-          fill="#ef4444" 
-          name="Expenses"
-          barSize={20}
-        />
-        <Bar 
-          dataKey="profit" 
-          fill="#8b5cf6" 
-          name="Profit"
-          barSize={20}
-        />
-      </BarChart>
     </ResponsiveContainer>
   );
 

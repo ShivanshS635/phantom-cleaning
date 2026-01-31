@@ -30,7 +30,7 @@ export default function DashboardPanel({ onLock }) {
   });
 
   // Make sure expenses is always an array
-  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const safeExpenses = useMemo(() => Array.isArray(expenses) ? expenses : [], [expenses]);
 
   const fetchAllData = async () => {
     setRefreshLoading(true);

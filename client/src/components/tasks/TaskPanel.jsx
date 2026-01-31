@@ -12,11 +12,6 @@ import {
   List,
   MapPin,
   User,
-  AlertCircle,
-  CheckCircle2,
-  PlayCircle,
-  PauseCircle,
-  Plus
 } from "lucide-react";
 import api from "../../api/axios";
 import TaskTimelineItem from "./TaskTimelineItem";

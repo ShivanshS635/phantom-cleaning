@@ -4,15 +4,9 @@ import {
   Filter,
   Plus,
   Search,
-  Clock,
-  MapPin,
-  Users,
   ChevronDown,
   ChevronUp,
-  CheckCircle,
-  XCircle,
-  RefreshCw,
-  AlertCircle
+  RefreshCw
 } from "lucide-react";
 import api from "../../api/axios";
 import JobCard from "./JobCard";
@@ -237,7 +231,6 @@ export default function Jobs() {
             {/* Empty State */}
             {filteredJobs.length === 0 && !loading && (
               <div className="bg-white rounded-2xl shadow border border-gray-200 p-12 text-center">
-                <AlertCircle className="mx-auto text-gray-400 mb-4" size={48} />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   No jobs found
                 </h3>

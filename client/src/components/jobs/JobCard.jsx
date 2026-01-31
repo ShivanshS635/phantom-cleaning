@@ -1,5 +1,5 @@
 // JobCard.jsx
-import { MapPin, Clock, User, CheckCircle, AlertCircle, XCircle, RefreshCw } from "lucide-react";
+import { MapPin, Clock, User, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 
 export default function JobCard({ job, onClick, onRefresh }) {
   const statusConfig = {
