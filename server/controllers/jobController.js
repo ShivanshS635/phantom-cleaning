@@ -8,12 +8,21 @@ exports.addJob = async (req, res) => {
     const populatedJob = await job.populate("assignedEmployee", "name");
 
     if (job.assignedEmployee) {
+      // Handle date conversion - job.date is a String, convert to Date if valid
+      let dueDate = new Date();
+      if (job.date) {
+        const parsedDate = new Date(job.date);
+        if (!isNaN(parsedDate.getTime())) {
+          dueDate = parsedDate;
+        }
+      }
+
       await Task.create({
         title: `Clean job for ${job.customerName}`,
         description: `Cleaning at ${job.address}, ${job.city}`,
         assignedTo: job.assignedEmployee,
         job: job._id,
-        dueDate: new Date(job.date),
+        dueDate: dueDate,
         priority: "Medium",
         status: "Pending"
       });
@@ -114,12 +123,21 @@ exports.assignCleaner = async (req, res) => {
       task.assignedTo = employeeId;
       await task.save();
     } else {
+      // Handle date conversion - job.date is a String, convert to Date if valid
+      let dueDate = new Date();
+      if (job.date) {
+        const parsedDate = new Date(job.date);
+        if (!isNaN(parsedDate.getTime())) {
+          dueDate = parsedDate;
+        }
+      }
+
       await Task.create({
         title: `Clean job for ${job.customerName}`,
         description: `Cleaning at ${job.address}, ${job.city}`,
         assignedTo: employeeId,
         job: job._id,
-        dueDate: new Date(job.date),
+        dueDate: dueDate,
         priority: "Medium",
         status: "Pending"
       });

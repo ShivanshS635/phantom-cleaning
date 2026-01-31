@@ -231,6 +231,9 @@ exports.updateExpense = async (req, res) => {
       });
     }
 
+    // Store original status before updating
+    const originalStatus = expense.status;
+
     // Update fields
     if (title !== undefined) expense.title = title;
     if (amount !== undefined) expense.amount = parseFloat(amount);
@@ -243,7 +246,7 @@ exports.updateExpense = async (req, res) => {
     if (vendor !== undefined) expense.vendor = vendor;
 
     // If status changed to Paid, set approval info
-    if (status === "Paid" && expense.status !== "Paid") {
+    if (status === "Paid" && originalStatus !== "Paid") {
       expense.approvedBy = req.user.id;
       expense.approvedAt = new Date();
     }
