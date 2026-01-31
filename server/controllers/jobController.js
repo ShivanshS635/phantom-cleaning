@@ -2,7 +2,6 @@ const Job = require("../models/Job");
 const Task = require("../models/Task");
 const { upsertJob } = require("../utils/excelService");
 
-// ✅ ADD JOB
 exports.addJob = async (req, res) => {
   try {
     const job = await Job.create(req.body);
@@ -28,7 +27,6 @@ exports.addJob = async (req, res) => {
   }
 };
 
-// ✅ GET JOBS
 exports.getJobs = async (req, res) => {
   try {
     const filter = {};
@@ -47,7 +45,6 @@ exports.getJobs = async (req, res) => {
   }
 };
 
-// ✅ UPDATE STATUS (COMPLETE / REDO / CANCEL)
 exports.updateJobStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -108,11 +105,9 @@ exports.assignCleaner = async (req, res) => {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    // Assign cleaner
     job.assignedEmployee = employeeId;
     await job.save();
 
-    // Update or create related task
     let task = await Task.findOne({ job: job._id });
 
     if (task) {
@@ -135,7 +130,6 @@ exports.assignCleaner = async (req, res) => {
       "name phone role"
     );
 
-    // Sync Excel
     await upsertJob(populatedJob);
 
     res.json({

@@ -1,16 +1,9 @@
-import { useEffect, useState } from "react";
+// DashboardFilters.jsx
+import { Calendar, Filter, X } from "lucide-react";
+import { useState } from "react";
 
 export default function DashboardFilters({ from, to, setFrom, setTo }) {
   const [activePreset, setActivePreset] = useState("");
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (from && to && new Date(from) > new Date(to)) {
-      setError("From date cannot be after To date");
-    } else {
-      setError("");
-    }
-  }, [from, to]);
 
   const applyPreset = (days) => {
     const end = new Date();
@@ -19,122 +12,140 @@ export default function DashboardFilters({ from, to, setFrom, setTo }) {
 
     setFrom(start.toISOString().split("T")[0]);
     setTo(end.toISOString().split("T")[0]);
-    setActivePreset(days);
+    setActivePreset(days.toString());
   };
 
   const resetFilters = () => {
     setFrom("");
     setTo("");
     setActivePreset("");
-    setError("");
+  };
+
+  const presets = [
+    { label: "Today", days: 0 },
+    { label: "Yesterday", days: 1 },
+    { label: "Last 7 days", days: 7 },
+    { label: "Last 30 days", days: 30 },
+    { label: "This month", days: new Date().getDate() - 1 },
+    { label: "Last month", days: 60 } // Approximation
+  ];
+
+  const formatDateDisplay = (dateString) => {
+    if (!dateString) return "Select date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-AU", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 px-6 py-5 shadow-sm">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <p className="text-sm font-semibold text-gray-800">
-          Filter by date
-        </p>
-
-        <button
-          onClick={resetFilters}
-          className="text-sm text-gray-500 hover:text-black transition"
-        >
-          Reset
-        </button>
+    <div className="bg-white rounded-2xl shadow border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Filter size={20} className="text-gray-600" />
+          <h3 className="text-lg font-semibold text-gray-900">Date Range Filters</h3>
+        </div>
+        
+        {(from || to) && (
+          <button
+            onClick={resetFilters}
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <X size={16} />
+            Clear Filters
+          </button>
+        )}
       </div>
 
-      {/* Presets */}
-      <div className="flex flex-wrap gap-3 mb-5">
-        <PresetButton
-          label="Today"
-          active={activePreset === 0}
-          onClick={() => applyPreset(0)}
-        />
-        <PresetButton
-          label="Last 7 days"
-          active={activePreset === 7}
-          onClick={() => applyPreset(7)}
-        />
-        <PresetButton
-          label="Last 30 days"
-          active={activePreset === 30}
-          onClick={() => applyPreset(30)}
-        />
+      {/* Quick Presets */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-gray-700 mb-3">Quick Ranges</p>
+        <div className="flex flex-wrap gap-2">
+          {presets.map((preset) => (
+            <button
+              key={preset.label}
+              onClick={() => applyPreset(preset.days)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activePreset === preset.days.toString()
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Date Inputs */}
+      {/* Custom Date Range */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <DateInput
-          label="From"
-          value={from}
-          onChange={(v) => {
-            setFrom(v);
-            setActivePreset("");
-          }}
-          error={!!error}
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            From Date
+          </label>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => {
+                setFrom(e.target.value);
+                setActivePreset("");
+              }}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            />
+            {from && (
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
+                {formatDateDisplay(from)}
+              </span>
+            )}
+          </div>
+        </div>
 
-        <DateInput
-          label="To"
-          value={to}
-          onChange={(v) => {
-            setTo(v);
-            setActivePreset("");
-          }}
-          error={!!error}
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            To Date
+          </label>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => {
+                setTo(e.target.value);
+                setActivePreset("");
+              }}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            />
+            {to && (
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
+                {formatDateDisplay(to)}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <p className="mt-3 text-sm text-red-500">
-          {error}
-        </p>
+      {/* Error Validation */}
+      {from && to && new Date(from) > new Date(to) && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-600">
+            From date cannot be after To date
+          </p>
+        </div>
       )}
-    </div>
-  );
-}
 
-/* ================= SUB COMPONENTS ================= */
-
-function PresetButton({ label, active, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-2 rounded-full text-sm font-medium transition
-        ${
-          active
-            ? "bg-black text-white"
-            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-        }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function DateInput({ label, value, onChange, error }) {
-  return (
-    <div className="flex flex-col">
-      <label className="text-xs font-medium text-gray-500 mb-1">
-        {label}
-      </label>
-
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`h-11 px-4 rounded-lg border text-sm transition
-          ${
-            error
-              ? "border-red-400 focus:ring-red-200"
-              : "border-gray-300 focus:ring-black/20 focus:border-black"
-          }
-          focus:outline-none focus:ring-2
-        `}
-      />
+      {/* Selected Range Display */}
+      {(from || to) && (
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <p className="text-sm text-gray-600 mb-1">Selected Range:</p>
+          <p className="font-medium text-gray-900">
+            {from ? formatDateDisplay(from) : "Any start"} → {to ? formatDateDisplay(to) : "Any end"}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

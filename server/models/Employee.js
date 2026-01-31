@@ -1,32 +1,41 @@
 const mongoose = require("mongoose");
 
-const employeeSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+const STATES = ["Sydney", "Melbourne", "Adelaide", "Perth", "Brisbane"];
 
-  phone: { type: String, required: true },
+const employeeSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
 
-  email: { type: String, unique: true },
+    phone: { type: String, required: true },
 
-  role: {
-    type: String,
-    enum: ["Cleaner", "Manager", "HR"],
-    required: true
+    email: { type: String, unique: true },
+
+    role: {
+      type: String,
+      enum: ["Cleaner", "Manager", "HR"],
+      required: true
+    },
+
+    state: {
+      type: String,
+      enum: STATES,
+      required: true
+    },
+
+    status: {
+      type: String,
+      enum: ["Active", "Inactive"],
+      default: "Active"
+    },
+
+    joiningDate: {
+      type: Date,
+      default: Date.now
+    },
+
+    notes: String
   },
-
-  city: String,
-
-  status: {
-    type: String,
-    enum: ["Active", "Inactive"],
-    default: "Active"
-  },
-
-  joiningDate: {
-    type: Date,
-    default: Date.now
-  },
-
-  notes: String
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("Employee", employeeSchema);

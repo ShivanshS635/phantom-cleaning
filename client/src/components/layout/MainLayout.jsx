@@ -3,6 +3,7 @@ import JobsPanel from "../jobs/JobsPanel";
 import EmployeesPanel from "../employees/EmployeesPanel";
 import DashboardWrapper from "../dashboard/DashboardWrapper";
 import TaskPanel from "../tasks/TaskPanel";
+import AdminExpenses from "../expenses/AdminExpenses";
 
 export default function MainLayout() {
   const [activePanel, setActivePanel] = useState("tasks");
@@ -16,6 +17,11 @@ export default function MainLayout() {
         <SidebarButton label="Jobs" onClick={() => setActivePanel("jobs")} />
         <SidebarButton label="Employees" onClick={() => setActivePanel("employees")} />
         <SidebarButton label="Dashboard 🔒" onClick={() => setActivePanel("dashboard")} />
+        <SidebarButton
+          label="Expenses 💸"
+          onClick={() => setActivePanel("expenses")}
+        />
+
       </aside>
 
       <main className="flex-1 p-6 bg-gray-100">
@@ -23,6 +29,7 @@ export default function MainLayout() {
         {activePanel === "jobs" && <JobsPanel />}
         {activePanel === "employees" && <EmployeesPanel />}
         {activePanel === "dashboard" && <DashboardWrapper />}
+        {activePanel === "expenses" && <AdminExpenses />}
       </main>
     </div>
   );
