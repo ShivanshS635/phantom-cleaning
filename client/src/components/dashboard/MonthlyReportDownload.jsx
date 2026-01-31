@@ -4,7 +4,7 @@ export default function MonthlyReportDownload() {
             const token = localStorage.getItem("token"); // or memory store
 
             const res = await fetch(
-                `${process.env.REACT_APP_API_URL}/api/reports/monthly?month=${month}`,
+                `${process.env.REACT_APP_API_URL}/reports/monthly?month=${month}`,
                 {
                     method: "GET",
                     headers: {
