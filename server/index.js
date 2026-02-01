@@ -72,6 +72,11 @@ app.use("/api/tasks", require("./routes/task.routes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
 app.use("/api/reports", require("./routes/reportRoutes"));
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
+
 /* =========================
    SERVER
 ========================= */
