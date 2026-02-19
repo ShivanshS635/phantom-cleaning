@@ -1,13 +1,13 @@
 // JobDrawer.jsx
 import { useEffect, useState } from "react";
-import { 
-  X, 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Calendar, 
-  Clock, 
+import {
+  X,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  Clock,
   DollarSign,
   FileText,
   CheckCircle,
@@ -18,13 +18,13 @@ import {
 import api from "../../api/axios";
 import { showSuccess, showError } from "../../utils/toast";
 
-export default function JobDrawer({ job, onClose, onRefresh }) {
+export default function JobDrawer({ job, onClose, onRefresh, onUpdateStatus }) {
   const [employees, setEmployees] = useState([]);
   const [selectedCleaner, setSelectedCleaner] = useState(
     job.assignedEmployee?._id || ""
   );
   const [loading, setLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
+
 
   useEffect(() => {
     fetchEmployees();
@@ -54,27 +54,18 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
     }
   };
 
-  const updateStatus = async (status) => {
-    if (!window.confirm(`Are you sure you want to mark this job as ${status}?`)) {
-      return;
-    }
-
-    try {
-      setActionLoading(status);
-      await api.put(`/jobs/${job._id}/status`, { status });
-      showSuccess(`Job marked as ${status}`);
-      onRefresh();
-      onClose();
-    } catch (err) {
-      showError(err.response?.data?.message || "Failed to update status");
-    } finally {
-      setActionLoading(false);
+  const updateStatus = (status) => {
+    if (onUpdateStatus) {
+      onUpdateStatus(job._id, status, () => {
+        onRefresh();
+        onClose();
+      });
     }
   };
 
   const getStatusActions = () => {
     const actions = [];
-    
+
     if (job.status !== "Completed" && job.status !== "Cancelled") {
       actions.push({
         label: "Mark as Completed",
@@ -108,11 +99,11 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Drawer */}
       <div className="absolute inset-y-0 right-0 w-full max-w-md">
         <div className="h-full bg-white shadow-xl flex flex-col">
@@ -145,7 +136,7 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
                     <p className="text-sm text-gray-600">Customer</p>
                   </div>
                 </div>
-                
+
                 {job.phone && (
                   <div className="flex items-center gap-3">
                     <Phone size={18} className="text-gray-400" />
@@ -155,7 +146,7 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
                     </div>
                   </div>
                 )}
-                
+
                 {job.email && (
                   <div className="flex items-center gap-3">
                     <Mail size={18} className="text-gray-400" />
@@ -181,7 +172,7 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
                     <p className="text-sm text-gray-600">Date</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                   <Clock size={18} className="text-gray-400" />
                   <div>
@@ -189,7 +180,7 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
                     <p className="text-sm text-gray-600">Time</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                   <MapPin size={18} className="text-gray-400" />
                   <div>
@@ -197,7 +188,7 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
                     <p className="text-sm text-gray-600">State</p>
                   </div>
                 </div>
-                
+
                 {job.price && (
                   <div className="flex items-center gap-3">
                     <DollarSign size={18} className="text-gray-400" />
@@ -210,7 +201,7 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
                   </div>
                 )}
               </div>
-              
+
               {job.address && (
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm font-medium text-gray-900">Address</p>
@@ -218,7 +209,7 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
                   {job.city && <p className="text-sm text-gray-600">{job.city}</p>}
                 </div>
               )}
-              
+
               {job.notes && (
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
@@ -274,14 +265,9 @@ export default function JobDrawer({ job, onClose, onRefresh }) {
                   <button
                     key={action.status}
                     onClick={() => updateStatus(action.status)}
-                    disabled={actionLoading === action.status}
-                    className={`w-full ${action.color} text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2`}
+                    className={`w-full ${action.color} text-white py-3 rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2`}
                   >
-                    {actionLoading === action.status ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <action.icon size={18} />
-                    )}
+                    <action.icon size={18} />
                     {action.label}
                   </button>
                 ))}

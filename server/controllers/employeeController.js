@@ -1,6 +1,5 @@
 const Employee = require("../models/Employee");
 
-// ✅ Add Employee
 const STATES = ["Sydney", "Melbourne", "Adelaide", "Perth", "Brisbane"];
 
 exports.addEmployee = async (req, res) => {
@@ -19,7 +18,6 @@ exports.addEmployee = async (req, res) => {
 };
 
 
-// ✅ Get All Employees (with role filter)
 exports.getEmployees = async (req, res) => {
   try {
     const filter = {};
@@ -35,7 +33,6 @@ exports.getEmployees = async (req, res) => {
   }
 };
 
-// ✅ Get Single Employee
 exports.getSingleEmployee = async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
@@ -46,7 +43,6 @@ exports.getSingleEmployee = async (req, res) => {
   }
 };
 
-// ✅ Update Employee
 exports.updateEmployee = async (req, res) => {
   try {
     const employee = await Employee.findByIdAndUpdate(
@@ -65,7 +61,6 @@ exports.updateEmployee = async (req, res) => {
   }
 };
 
-// ✅ Delete Employee
 exports.deleteEmployee = async (req, res) => {
   try {
     const employee = await Employee.findByIdAndDelete(req.params.id);

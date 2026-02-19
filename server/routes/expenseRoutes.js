@@ -7,7 +7,8 @@ const {
   deleteExpense,
   bulkDeleteExpenses,
   getExpenseSummary,
-  updateExpenseStatus
+  updateExpenseStatus,
+  exportExpensesExcel
 } = require("../controllers/expenseController");
 const auth = require("../middleware/auth");
 const { adminOnly } = require("../middleware/adminMiddleware");
@@ -17,6 +18,7 @@ const { adminOnly } = require("../middleware/adminMiddleware");
 // Protected routes (admin only)
 router.get("/", auth, adminOnly, getExpenses);
 router.get("/stats/summary", auth, adminOnly, getExpenseSummary);
+router.get("/export/excel", auth, adminOnly, exportExpensesExcel);
 router.get("/:id", auth, adminOnly, getExpenseById);
 router.post("/", auth, adminOnly, addExpense);
 router.put("/:id", auth, adminOnly, updateExpense);

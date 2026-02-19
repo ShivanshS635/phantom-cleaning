@@ -13,6 +13,7 @@ router.use(protect);
 router.post("/", addJob);
 router.get("/", getJobs);
 router.put("/:id/status", updateJobStatus);
+router.patch("/:id/status", updateJobStatus);
 router.put("/:id/assign", assignCleaner);
 
 

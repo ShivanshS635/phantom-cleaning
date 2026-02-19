@@ -29,13 +29,10 @@ exports.downloadMonthlyReport = async (req, res) => {
       date: { $gte: start, $lt: end }
     });
 
-    const workbook = new ExcelJS.Workbook();
+    const wb = new ExcelJS.Workbook();
 
-    /* =====================
-       JOB SHEETS (BY STATE)
-    ===================== */
     STATES.forEach(state => {
-      const sheet = workbook.addWorksheet(state);
+      const sheet = wb.addWorksheet(state);
       sheet.columns = [
         { header: "Job ID", key: "id", width: 26 },
         { header: "Date", key: "date", width: 14 },
@@ -62,10 +59,7 @@ exports.downloadMonthlyReport = async (req, res) => {
         });
     });
 
-    /* =====================
-       EXPENSES SHEET
-    ===================== */
-    const expenseSheet = workbook.addWorksheet("Expenses");
+    const expenseSheet = wb.addWorksheet("Expenses");
     expenseSheet.columns = [
       { header: "Title", key: "title", width: 24 },
       { header: "Amount", key: "amount", width: 14 },
@@ -83,7 +77,7 @@ exports.downloadMonthlyReport = async (req, res) => {
     /* =====================
        SUMMARY SHEET
     ===================== */
-    const summary = workbook.addWorksheet("Summary");
+    const summary = wb.addWorksheet("Summary");
 
     const totalRevenue = jobs
       .filter(j => j.status === "Completed")
@@ -111,7 +105,7 @@ exports.downloadMonthlyReport = async (req, res) => {
       `attachment; filename=PhantomCleaning_${month}.xlsx`
     );
 
-    await workbook.xlsx.write(res);
+    await wb.xlsx.write(res);
     res.end();
   } catch (err) {
     console.error(err);

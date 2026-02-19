@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { 
+import {
   Calendar as CalendarIcon,
   Filter,
+  MapPin,
   Plus,
   Search,
   ChevronDown,
@@ -13,13 +14,26 @@ import JobCard from "./JobCard";
 import JobDrawer from "./JobDrawer";
 import JobFormDrawer from "./JobFormDrawer";
 import StatsOverview from "./StatsOverview";
-import { showError } from "../../utils/toast";
+import { showError, showSuccess } from "../../utils/toast";
 
-export default function Jobs() {
+import ConfirmationModal from "../common/ConfirmationModal";
+
+export default function JobsPanel() {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    type: "danger",
+    isLoading: false
+  });
   const [showAddJob, setShowAddJob] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [stateFilter, setStateFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState({
@@ -28,6 +42,28 @@ export default function Jobs() {
     past: true
   });
 
+  const handleStatusChange = (id, newStatus, onSuccess) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Update Job Status",
+      message: `Are you sure you want to change the status to ${newStatus}?`,
+      type: "info",
+      confirmText: "Update Status",
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await api.patch(`/jobs/${id}/status`, { status: newStatus });
+          showSuccess("Status updated");
+          fetchJobs();
+          if (onSuccess) onSuccess();
+        } catch (err) {
+          showError("Failed to update status");
+        } finally {
+          setConfirmModal({ isOpen: false, title: "", message: "", onConfirm: null, type: "danger", isLoading: false });
+        }
+      }
+    });
+  };
   const fetchJobs = async () => {
     setLoading(true);
     try {
@@ -46,27 +82,31 @@ export default function Jobs() {
 
   const filteredJobs = useMemo(() => {
     let result = jobs;
-    
+
     if (statusFilter !== "All") {
       result = result.filter(job => job.status === statusFilter);
     }
-    
+
+    if (stateFilter !== "All") {
+      result = result.filter(job => job.state === stateFilter);
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(job => 
+      result = result.filter(job =>
         job.customerName?.toLowerCase().includes(query) ||
         job.address?.toLowerCase().includes(query) ||
         job.phone?.includes(query)
       );
     }
-    
+
     return result;
-  }, [jobs, statusFilter, searchQuery]);
+  }, [jobs, statusFilter, stateFilter, searchQuery]);
 
   const groupedJobs = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     const groups = { today: [], upcoming: [], past: [] };
-    
+
     filteredJobs.forEach(job => {
       const jobDate = job.date;
       if (jobDate === today) {
@@ -77,7 +117,7 @@ export default function Jobs() {
         groups.past.push(job);
       }
     });
-    
+
     // Sort by date and time
     Object.values(groups).forEach(group => {
       group.sort((a, b) => {
@@ -88,7 +128,7 @@ export default function Jobs() {
         return dateCompare;
       });
     });
-    
+
     return groups;
   }, [filteredJobs]);
 
@@ -145,21 +185,39 @@ export default function Jobs() {
                 />
               </div>
             </div>
-            
+
             <div className="lg:col-span-4">
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <select
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="All">All Statuses</option>
-                  <option value="Upcoming">Upcoming</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Redo">Redo</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
+              <div className="flex gap-4">
+                <div className="relative flex-1">
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <select
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Redo">Redo</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                <div className="relative flex-1">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <select
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
+                    value={stateFilter}
+                    onChange={(e) => setStateFilter(e.target.value)}
+                  >
+                    <option value="All">All Filter</option>
+                    <option value="Sydney">Sydney</option>
+                    <option value="Melbourne">Melbourne</option>
+                    <option value="Brisbane">Brisbane</option>
+                    <option value="Adelaide">Adelaide</option>
+                    <option value="Perth">Perth</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -235,7 +293,7 @@ export default function Jobs() {
                   No jobs found
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  {searchQuery || statusFilter !== "All" 
+                  {searchQuery || statusFilter !== "All"
                     ? "Try adjusting your search or filters"
                     : "Get started by creating your first job"}
                 </p>
@@ -260,6 +318,7 @@ export default function Jobs() {
           job={selectedJob}
           onClose={() => setSelectedJob(null)}
           onRefresh={fetchJobs}
+          onUpdateStatus={handleStatusChange}
         />
       )}
 
@@ -272,6 +331,17 @@ export default function Jobs() {
           }}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+        isLoading={confirmModal.isLoading}
+      />
     </div>
   );
 }

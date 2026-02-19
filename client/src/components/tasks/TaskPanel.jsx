@@ -1,10 +1,10 @@
 // TaskPanel.jsx - Main Component
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { 
-  Calendar, 
-  ChevronLeft, 
-  ChevronRight, 
-  Filter, 
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
   Clock,
   Loader2,
   CalendarDays,
@@ -16,8 +16,9 @@ import {
 import api from "../../api/axios";
 import TaskTimelineItem from "./TaskTimelineItem";
 import TaskDrawer from "./TaskDrawer";
+import ConfirmationModal from "../common/ConfirmationModal";
 import TaskStats from "./TaskStats";
-import { showError } from "../../utils/toast";
+import { showError, showSuccess } from "../../utils/toast";
 
 export default function TaskPanel() {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
@@ -27,6 +28,18 @@ export default function TaskPanel() {
   const [viewMode, setViewMode] = useState("timeline"); // 'timeline' | 'grid' | 'list'
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    type: "danger",
+    isLoading: false
+  });
+
   const [showFilters, setShowFilters] = useState(false);
 
   const fetchTasks = useCallback(async () => {
@@ -48,15 +61,15 @@ export default function TaskPanel() {
 
   const filteredTasks = useMemo(() => {
     let result = tasks;
-    
+
     if (statusFilter !== "all") {
       result = result.filter(task => task.status === statusFilter);
     }
-    
+
     if (priorityFilter !== "all") {
       result = result.filter(task => task.priority === priorityFilter);
     }
-    
+
     // Sort by time
     return result.sort((a, b) => {
       const timeA = a.job?.time || "00:00";
@@ -71,6 +84,31 @@ export default function TaskPanel() {
     setDate(currentDate.toISOString().split("T")[0]);
   };
 
+  const updateTaskStatus = async (taskId, status) => {
+    try {
+      await api.patch(`/tasks/${taskId}/status`, { status });
+      showSuccess("Task updated successfully");
+      fetchTasks();
+    } catch (err) {
+      showError("Failed to update task");
+    }
+  };
+
+  const handleUpdateStatus = (taskId, newStatus, onSuccess) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Update Task Status",
+      message: `Are you sure you want to change the status to ${newStatus}?`,
+      type: "info",
+      confirmText: "Update",
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        await updateTaskStatus(taskId, newStatus);
+        setConfirmModal({ isOpen: false, title: "", message: "", onConfirm: null, type: "danger", isLoading: false });
+        if (onSuccess) onSuccess();
+      }
+    });
+  };
   const formatDateDisplay = (dateString) => {
     const date = new Date(dateString);
     const today = new Date();
@@ -82,7 +120,7 @@ export default function TaskPanel() {
     if (date.toDateString() === today.toDateString()) return "Today";
     if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
     if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
-    
+
     return date.toLocaleDateString("en-AU", {
       weekday: "short",
       day: "numeric",
@@ -118,21 +156,21 @@ export default function TaskPanel() {
               >
                 <ChevronLeft size={20} className="text-gray-600" />
               </button>
-              
+
               <div className="flex items-center gap-2">
                 <Calendar size={20} className="text-gray-400" />
                 <span className="font-semibold text-gray-900">
                   {formatDateDisplay(date)}
                 </span>
               </div>
-              
+
               <button
                 onClick={() => navigateDate(1)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <ChevronRight size={20} className="text-gray-600" />
               </button>
-              
+
               <button
                 onClick={() => setDate(new Date().toISOString().split("T")[0])}
                 className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1.5 hover:bg-gray-100 rounded-lg transition-colors"
@@ -274,7 +312,7 @@ export default function TaskPanel() {
                 <div className="relative">
                   {/* Timeline Line */}
                   <div className="absolute left-24 top-0 bottom-0 w-0.5 bg-gray-200" />
-                  
+
                   <div className="space-y-6">
                     {filteredTasks.map((task, index) => (
                       <TaskTimelineItem
@@ -306,17 +344,16 @@ export default function TaskPanel() {
                       {task.job?.time || "All day"}
                     </p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    task.status === "Completed" 
-                      ? "bg-green-100 text-green-700"
-                      : task.status === "In Progress"
+                  <span className={`text-xs px-2 py-1 rounded-full ${task.status === "Completed"
+                    ? "bg-green-100 text-green-700"
+                    : task.status === "In Progress"
                       ? "bg-blue-100 text-blue-700"
                       : "bg-yellow-100 text-yellow-700"
-                  }`}>
+                    }`}>
                     {task.status}
                   </span>
                 </div>
-                
+
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-gray-600">
                     <MapPin size={14} />
@@ -375,24 +412,22 @@ export default function TaskPanel() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className={`inline-block text-xs px-3 py-1 rounded-full ${
-                        task.status === "Completed" 
-                          ? "bg-green-100 text-green-700"
-                          : task.status === "In Progress"
+                      <span className={`inline-block text-xs px-3 py-1 rounded-full ${task.status === "Completed"
+                        ? "bg-green-100 text-green-700"
+                        : task.status === "In Progress"
                           ? "bg-blue-100 text-blue-700"
                           : "bg-yellow-100 text-yellow-700"
-                      }`}>
+                        }`}>
                         {task.status}
                       </span>
                     </td>
                     <td className="p-4">
-                      <span className={`inline-block text-xs px-3 py-1 rounded-full ${
-                        task.priority === "High" 
-                          ? "bg-red-100 text-red-700"
-                          : task.priority === "Medium"
+                      <span className={`inline-block text-xs px-3 py-1 rounded-full ${task.priority === "High"
+                        ? "bg-red-100 text-red-700"
+                        : task.priority === "Medium"
                           ? "bg-yellow-100 text-yellow-700"
                           : "bg-blue-100 text-blue-700"
-                      }`}>
+                        }`}>
                         {task.priority || "Medium"}
                       </span>
                     </td>
@@ -410,8 +445,19 @@ export default function TaskPanel() {
           task={activeTask}
           onClose={() => setActiveTask(null)}
           onRefresh={fetchTasks}
+          onUpdateStatus={handleUpdateStatus}
         />
       )}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+        isLoading={confirmModal.isLoading}
+      />
     </div>
   );
 }

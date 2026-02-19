@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { 
-  Plus, 
-  Download, 
-  Edit2, 
-  Trash2, 
+import {
+  Plus,
+  Download,
+  Edit2,
+  Trash2,
   Receipt,
   DollarSign,
   Calendar,
@@ -14,32 +14,44 @@ import {
   AlertCircle,
   CheckCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  MapPin,
+  FileSpreadsheet
 } from "lucide-react";
 import api from "../../api/axios";
 import { showError, showSuccess } from "../../utils/toast";
 import ExpenseFormDrawer from "./ExpenseFormDrawer";
 import ExpenseCategoryBadge from "./ExpenseCategoryBadge";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 export default function ExpensesPanel({ filterCategory, filterDateRange }) {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [stateFilter, setStateFilter] = useState("All");
   const [editingExpense, setEditingExpense] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
   const [selectedExpenses, setSelectedExpenses] = useState([]);
-  
-  // Pagination state
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    type: "danger",
+    isLoading: false
+  });
+
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 50,
     total: 0,
     pages: 1
   });
-  
-  // Summary state
+
   const [summary, setSummary] = useState({
     totalAmount: 0,
     pendingAmount: 0,
@@ -48,8 +60,8 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
   });
 
   const categories = [
-    "Supplies", "Equipment", "Travel", "Marketing", "Office", 
-    "Software", "Services", "Training", "Other"
+    "Supplies", "Equipment", "Travel", "Marketing", "Office",
+    "Software", "Services", "Training", "Salary", "Other"
   ];
 
   const fetchExpenses = useCallback(async (page = 1) => {
@@ -59,6 +71,7 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
         category: filterCategory !== "all" ? filterCategory : undefined,
         startDate: filterDateRange.from || undefined,
         endDate: filterDateRange.to || undefined,
+        state: stateFilter !== "All" ? stateFilter : undefined,
         search: searchQuery || undefined,
         sortBy,
         sortOrder,
@@ -66,13 +79,12 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
         limit: pagination.limit
       };
 
-      // Remove undefined params
-      Object.keys(params).forEach(key => 
+      Object.keys(params).forEach(key =>
         params[key] === undefined && delete params[key]
       );
 
       const res = await api.get("/expenses", { params });
-      
+
       if (res.data.success) {
         setExpenses(res.data.data || []);
         setPagination({
@@ -81,7 +93,7 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
           total: res.data.total || 0,
           pages: res.data.pages || 1
         });
-        
+
         if (res.data.summary) {
           setSummary(res.data.summary);
         }
@@ -93,35 +105,20 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
     } finally {
       setLoading(false);
     }
-  }, [filterCategory, filterDateRange, searchQuery, sortBy, sortOrder, pagination.limit]);
+  }, [filterCategory, filterDateRange, stateFilter, searchQuery, sortBy, sortOrder, pagination.limit]);
 
   useEffect(() => {
     fetchExpenses(1);
   }, [fetchExpenses]);
 
-  const deleteExpense = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this expense?")) return;
-    
-    try {
-      const res = await api.delete(`/expenses/${id}`);
-      if (res.data.success) {
-        showSuccess("Expense deleted successfully");
-        fetchExpenses(pagination.page);
-        // Remove from selected if it was selected
-        setSelectedExpenses(prev => prev.filter(expenseId => expenseId !== id));
-      } else {
-        showError(res.data.message || "Failed to delete expense");
-      }
-    } catch (error) {
-      showError(error.response?.data?.message || "Failed to delete expense");
-    }
-  };
+
+
 
   const bulkDelete = async () => {
     if (selectedExpenses.length === 0) return;
-    
+
     if (!window.confirm(`Delete ${selectedExpenses.length} selected expenses?`)) return;
-    
+
     try {
       const res = await api.delete("/expenses", { data: { ids: selectedExpenses } });
       if (res.data.success) {
@@ -145,8 +142,8 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
   };
 
   const toggleSelectExpense = (id) => {
-    setSelectedExpenses(prev => 
-      prev.includes(id) 
+    setSelectedExpenses(prev =>
+      prev.includes(id)
         ? prev.filter(expenseId => expenseId !== id)
         : [...prev, id]
     );
@@ -171,6 +168,28 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
     setShowForm(true);
   };
 
+  const deleteExpense = (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Expense",
+      message: "Are you sure you want to delete this expense? This action cannot be undone.",
+      type: "danger",
+      confirmText: "Delete",
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await api.delete(`/expenses/${id}`);
+          showSuccess("Expense deleted successfully");
+          fetchExpenses(pagination.page);
+        } catch (error) {
+          showError(error.response?.data?.message || "Failed to delete expense");
+        } finally {
+          setConfirmModal({ isOpen: false, title: "", message: "", onConfirm: null, type: "danger", isLoading: false });
+        }
+      }
+    });
+  };
+
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.pages) {
       fetchExpenses(newPage);
@@ -178,8 +197,8 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
   };
 
   // Calculate total from filtered expenses for display
-  const displayTotal = useMemo(() => 
-    expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0), 
+  const displayTotal = useMemo(() =>
+    expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0),
     [expenses]
   );
 
@@ -193,16 +212,16 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
         limit: 10000 // Get all for export
       };
 
-      Object.keys(params).forEach(key => 
+      Object.keys(params).forEach(key =>
         params[key] === undefined && delete params[key]
       );
 
       const res = await api.get("/expenses", { params });
-      
+
       if (res.data.success) {
         // Create CSV data
         const csvData = [
-          ["Title", "Amount", "Date", "Category", "Status", "Description", "Vendor", "Payment Method"],
+          ["Title", "Amount", "Date", "Category", "Status", "Description", "Payment Method"],
           ...res.data.data.map(expense => [
             expense.title,
             expense.amount,
@@ -210,13 +229,12 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
             expense.category,
             expense.status,
             expense.description || '',
-            expense.vendor || '',
             expense.paymentMethod || ''
           ])
         ];
 
         // Convert to CSV string
-        const csvString = csvData.map(row => 
+        const csvString = csvData.map(row =>
           row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
         ).join('\n');
 
@@ -230,11 +248,108 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         showSuccess("Expenses exported successfully");
       }
     } catch (error) {
       showError("Failed to export expenses");
+    }
+  };
+
+  const exportExpensesExcel = async () => {
+    try {
+      const params = {
+        category: filterCategory !== "all" ? filterCategory : undefined,
+        startDate: filterDateRange.from || undefined,
+        endDate: filterDateRange.to || undefined,
+        search: searchQuery || undefined,
+        state: stateFilter !== "All" ? stateFilter : undefined
+      };
+
+      Object.keys(params).forEach(key =>
+        params[key] === undefined && delete params[key]
+      );
+
+      // Make request with responseType blob for file download
+      const res = await api.get("/expenses/export/excel", {
+        params,
+        responseType: 'blob'
+      });
+
+      // Check content-type header to verify it's an Excel file
+      const contentType = res.headers['content-type'] || res.headers['Content-Type'] || '';
+      
+      // Create blob first to check size
+      const blob = new Blob([res.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      // If file is very small (< 500 bytes), it's likely an error message
+      if (blob.size < 500) {
+        // Try to read as text to see if it's an error
+        const text = await blob.text();
+        try {
+          const errorData = JSON.parse(text);
+          showError(errorData.message || errorData.error || "Failed to export expenses to Excel");
+          console.error("Excel export error:", errorData);
+          return;
+        } catch (e) {
+          // If it's not JSON, show the text content
+          showError(`Failed to export: ${text.substring(0, 100)}`);
+          console.error("Excel export failed with response:", text);
+          return;
+        }
+      }
+
+      // If it's JSON content type, it's definitely an error
+      if (contentType.includes('application/json')) {
+        const text = await blob.text();
+        const errorData = JSON.parse(text);
+        showError(errorData.message || errorData.error || "Failed to export expenses to Excel");
+        console.error("Excel export error:", errorData);
+        return;
+      }
+
+      // Verify it's actually an Excel file
+      const isExcelFile = contentType.includes('spreadsheet') || 
+                          contentType.includes('excel') ||
+                          contentType.includes('vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      
+      if (!isExcelFile && contentType) {
+        console.warn('Unexpected content type:', contentType);
+        // Still try to download, but warn user
+      }
+
+      // Create download link with explicit .xlsx extension
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const fileName = `expenses-${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.setAttribute("download", fileName);
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      // Small delay to ensure download starts before removing
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+
+      showSuccess("Excel file downloaded successfully");
+    } catch (error) {
+      console.error("Excel export error:", error);
+      // Handle error responses that might be blobs
+      if (error.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const errorData = JSON.parse(text);
+          showError(errorData.message || errorData.error || "Failed to export expenses to Excel");
+        } catch {
+          showError("Failed to export expenses to Excel. Please check console for details.");
+        }
+      } else {
+        showError(error.response?.data?.message || error.message || "Failed to export expenses to Excel");
+      }
     }
   };
 
@@ -249,7 +364,7 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
               {pagination.total} expenses • Total: ${summary.totalAmount?.toLocaleString() || "0"}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {selectedExpenses.length > 0 && (
               <button
@@ -260,15 +375,23 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
                 Delete Selected ({selectedExpenses.length})
               </button>
             )}
-            
+
             <button
               onClick={exportExpenses}
               className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Download size={18} />
-              Export
+              Export CSV
             </button>
-            
+
+            <button
+              onClick={exportExpensesExcel}
+              className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <FileSpreadsheet size={18} />
+              Export Excel
+            </button>
+
             <button
               onClick={() => setShowForm(true)}
               className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium"
@@ -311,12 +434,12 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
       {/* Controls */}
       <div className="p-6 border-b border-gray-200">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <div className="md:col-span-5">
+          <div className="md:col-span-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Search expenses by title, description, vendor, or category..."
+                placeholder="Search expenses..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && fetchExpenses(1)}
@@ -324,8 +447,24 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
               />
             </div>
           </div>
-          
-          <div className="md:col-span-4">
+
+          <div className="md:col-span-3">
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <select
+                value={stateFilter}
+                onChange={(e) => setStateFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
+              >
+                <option value="All">All States</option>
+                {["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth"].map(state => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="md:col-span-3">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -336,8 +475,8 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
               <option value="title">Sort by Title</option>
             </select>
           </div>
-          
-          <div className="md:col-span-3">
+
+          <div className="md:col-span-2">
             <button
               onClick={() => {
                 const newOrder = sortOrder === "asc" ? "desc" : "asc";
@@ -347,7 +486,7 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
               className="w-full inline-flex items-center justify-center gap-2 border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
             >
               {sortOrder === "asc" ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-              {sortOrder === "asc" ? "Ascending" : "Descending"}
+              {sortOrder === "asc" ? "Asc" : "Desc"}
             </button>
           </div>
         </div>
@@ -369,7 +508,7 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
               No expenses found
             </h3>
             <p className="text-gray-600 mb-4">
-              {searchQuery || filterCategory !== "all" 
+              {searchQuery || filterCategory !== "all"
                 ? "Try adjusting your search or filters"
                 : "Get started by adding your first expense"
               }
@@ -405,8 +544,8 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {expenses.map((expense) => (
-                  <tr 
-                    key={expense._id} 
+                  <tr
+                    key={expense._id}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="p-4">
@@ -423,11 +562,6 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
                         {expense.description && (
                           <p className="text-sm text-gray-600 mt-1 line-clamp-1">
                             {expense.description}
-                          </p>
-                        )}
-                        {expense.vendor && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Vendor: {expense.vendor}
                           </p>
                         )}
                       </div>
@@ -457,15 +591,14 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
-                          expense.status === 'Paid' 
-                            ? 'bg-green-100 text-green-700'
-                            : expense.status === 'Pending'
+                        <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${expense.status === 'Paid'
+                          ? 'bg-green-100 text-green-700'
+                          : expense.status === 'Pending'
                             ? 'bg-yellow-100 text-yellow-700'
                             : expense.status === 'Reimbursed'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}>
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}>
                           {expense.status === 'Paid' && <CheckCircle size={10} />}
                           {expense.status || 'Pending'}
                         </span>
@@ -527,7 +660,7 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
                     >
                       <ChevronLeft size={18} />
                     </button>
-                    
+
                     <div className="flex items-center gap-1">
                       {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
                         let pageNum;
@@ -540,23 +673,22 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
                         } else {
                           pageNum = pagination.page - 2 + i;
                         }
-                        
+
                         return (
                           <button
                             key={pageNum}
                             onClick={() => handlePageChange(pageNum)}
-                            className={`w-8 h-8 rounded-lg text-sm ${
-                              pagination.page === pageNum
-                                ? 'bg-gray-900 text-white'
-                                : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                            }`}
+                            className={`w-8 h-8 rounded-lg text-sm ${pagination.page === pageNum
+                              ? 'bg-gray-900 text-white'
+                              : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                              }`}
                           >
                             {pageNum}
                           </button>
                         );
                       })}
                     </div>
-                    
+
                     <button
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={pagination.page === pagination.pages}
@@ -584,6 +716,15 @@ export default function ExpensesPanel({ filterCategory, filterDateRange }) {
               Display Total: ${displayTotal.toLocaleString()}
             </div>
           </div>
+          <ConfirmationModal
+            isOpen={confirmModal.isOpen}
+            onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+            onConfirm={confirmModal.onConfirm}
+            title={confirmModal.title}
+            message={confirmModal.message}
+            type={confirmModal.type}
+            isLoading={confirmModal.isLoading}
+          />
         </div>
       )}
 

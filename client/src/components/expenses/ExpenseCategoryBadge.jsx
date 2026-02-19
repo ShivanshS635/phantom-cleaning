@@ -9,6 +9,7 @@ export default function ExpenseCategoryBadge({ category }) {
     Software: "bg-indigo-100 text-indigo-700 border-indigo-200",
     Services: "bg-pink-100 text-pink-700 border-pink-200",
     Training: "bg-orange-100 text-orange-700 border-orange-200",
+    Salary: "bg-emerald-100 text-emerald-700 border-emerald-200",
     Other: "bg-gray-100 text-gray-700 border-gray-200"
   };
 

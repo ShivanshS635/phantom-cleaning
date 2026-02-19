@@ -26,7 +26,25 @@ exports.updateTaskStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const task = await Task.findByIdAndUpdate(req.params.id, { status }, { new: true });
+
     if (!task) return res.status(404).json({ message: "Task not found" });
+
+    // Sync job status if task is linked to a job
+    if (task.job) {
+      const jobStatusMap = {
+        "Pending": "Upcoming",
+        "In Progress": "Upcoming",
+        "Completed": "Completed",
+        "Redo": "Redo",
+        "Cancelled": "Cancelled"
+      };
+
+      if (jobStatusMap[status]) {
+        const Job = require("../models/Job");
+        await Job.findByIdAndUpdate(task.job, { status: jobStatusMap[status] });
+      }
+    }
+
     res.json(task);
   } catch (err) {
     res.status(500).json({ message: "Failed to update task status" });

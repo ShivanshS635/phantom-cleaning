@@ -6,5 +6,6 @@ const { getTasksByDate, updateTaskStatus } = require("../controllers/task.contro
 
 router.get("/", protect, getTasksByDate);
 router.put("/:id/status", protect, updateTaskStatus);
+router.patch("/:id/status", protect, updateTaskStatus);
 
 module.exports = router;

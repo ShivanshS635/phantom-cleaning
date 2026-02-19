@@ -1,17 +1,17 @@
 const Expense = require("../models/Expense");
 const mongoose = require("mongoose");
+const ExcelJS = require("exceljs");
 
-// @desc    Get all expenses with filters
-// @route   GET /api/expenses
-// @access  Private/Admin
+const STATES = ["Sydney", "Melbourne", "Adelaide", "Perth", "Brisbane"];
+
 exports.getExpenses = async (req, res) => {
   try {
-    const { 
-      category, 
-      status, 
-      startDate, 
-      endDate, 
-      search, 
+    const {
+      category,
+      status,
+      startDate,
+      endDate,
+      search,
       sortBy = "date",
       sortOrder = "desc",
       page = 1,
@@ -20,17 +20,22 @@ exports.getExpenses = async (req, res) => {
 
     // Build filter object
     let filter = {};
-    
+
+    // State filter
+    if (req.query.state && req.query.state !== "All" && req.query.state !== "all") {
+      filter.state = req.query.state;
+    }
+
     // Category filter
     if (category && category !== "all") {
       filter.category = category;
     }
-    
+
     // Status filter
     if (status && status !== "all") {
       filter.status = status;
     }
-    
+
     // Date range filter
     if (startDate || endDate) {
       filter.date = {};
@@ -41,7 +46,7 @@ exports.getExpenses = async (req, res) => {
         filter.date.$lte = new Date(endDate);
       }
     }
-    
+
     // Search filter
     if (search) {
       filter.$or = [
@@ -118,9 +123,6 @@ exports.getExpenses = async (req, res) => {
   }
 };
 
-// @desc    Get single expense
-// @route   GET /api/expenses/:id
-// @access  Private/Admin
 exports.getExpenseById = async (req, res) => {
   try {
     const expense = await Expense.findById(req.params.id)
@@ -148,9 +150,6 @@ exports.getExpenseById = async (req, res) => {
   }
 };
 
-// @desc    Add new expense
-// @route   POST /api/expenses
-// @access  Private/Admin
 exports.addExpense = async (req, res) => {
   try {
     const {
@@ -162,7 +161,8 @@ exports.addExpense = async (req, res) => {
       status,
       receipt,
       paymentMethod,
-      vendor
+      vendor,
+      state
     } = req.body;
 
     // Validation
@@ -183,6 +183,7 @@ exports.addExpense = async (req, res) => {
       receipt,
       paymentMethod: paymentMethod || "Credit Card",
       vendor,
+      state: state || "Sydney",
       createdBy: req.user.id
     });
 
@@ -204,9 +205,6 @@ exports.addExpense = async (req, res) => {
   }
 };
 
-// @desc    Update expense
-// @route   PUT /api/expenses/:id
-// @access  Private/Admin
 exports.updateExpense = async (req, res) => {
   try {
     const {
@@ -218,12 +216,13 @@ exports.updateExpense = async (req, res) => {
       status,
       receipt,
       paymentMethod,
-      vendor
+      vendor,
+      state
     } = req.body;
 
     // Check if expense exists
     let expense = await Expense.findById(req.params.id);
-    
+
     if (!expense) {
       return res.status(404).json({
         success: false,
@@ -244,6 +243,7 @@ exports.updateExpense = async (req, res) => {
     if (receipt !== undefined) expense.receipt = receipt;
     if (paymentMethod !== undefined) expense.paymentMethod = paymentMethod;
     if (vendor !== undefined) expense.vendor = vendor;
+    if (state !== undefined) expense.state = state;
 
     // If status changed to Paid, set approval info
     if (status === "Paid" && originalStatus !== "Paid") {
@@ -272,9 +272,6 @@ exports.updateExpense = async (req, res) => {
   }
 };
 
-// @desc    Delete expense
-// @route   DELETE /api/expenses/:id
-// @access  Private/Admin
 exports.deleteExpense = async (req, res) => {
   try {
     const expense = await Expense.findById(req.params.id);
@@ -302,9 +299,6 @@ exports.deleteExpense = async (req, res) => {
   }
 };
 
-// @desc    Bulk delete expenses
-// @route   DELETE /api/expenses/bulk
-// @access  Private/Admin
 exports.bulkDeleteExpenses = async (req, res) => {
   try {
     const { ids } = req.body;
@@ -334,14 +328,15 @@ exports.bulkDeleteExpenses = async (req, res) => {
   }
 };
 
-// @desc    Get expense statistics
-// @route   GET /api/expenses/stats/summary
-// @access  Private/Admin
 exports.getExpenseSummary = async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, state } = req.query;
 
     let filter = {};
+    if (state && state !== "All" && state !== "all") {
+      filter.state = state;
+    }
+
     if (startDate || endDate) {
       filter.date = {};
       if (startDate) {
@@ -430,6 +425,26 @@ exports.getExpenseSummary = async (req, res) => {
       }
     ]);
 
+    // Get state breakdown
+    const stateBreakdown = await Expense.aggregate([
+      {
+        $match: {
+          ...filter,
+          status: { $ne: "Cancelled" }
+        }
+      },
+      {
+        $group: {
+          _id: "$state",
+          totalAmount: { $sum: "$amount" },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { totalAmount: -1 }
+      }
+    ]);
+
     // Calculate totals
     const totals = await Expense.aggregate([
       {
@@ -465,6 +480,7 @@ exports.getExpenseSummary = async (req, res) => {
         byCategory,
         monthlyTrend: formattedMonthlyTrend,
         statusBreakdown,
+        stateBreakdown,
         totals: totals[0] || {
           totalAmount: 0,
           count: 0,
@@ -482,9 +498,6 @@ exports.getExpenseSummary = async (req, res) => {
   }
 };
 
-// @desc    Update expense status
-// @route   PATCH /api/expenses/:id/status
-// @access  Private/Admin
 exports.updateExpenseStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -507,7 +520,7 @@ exports.updateExpenseStatus = async (req, res) => {
     }
 
     expense.status = status;
-    
+
     // If marking as paid, set approval info
     if (status === "Paid") {
       expense.approvedBy = req.user.id;
@@ -528,5 +541,144 @@ exports.updateExpenseStatus = async (req, res) => {
       message: "Failed to update expense status",
       error: error.message
     });
+  }
+};
+
+exports.exportExpensesExcel = async (req, res) => {
+  try {
+    const {
+      category,
+      status,
+      startDate,
+      endDate,
+      search,
+      state
+    } = req.query;
+
+    // Build filter object (same as getExpenses)
+    let filter = {};
+
+    // State filter
+    if (state && state !== "All" && state !== "all") {
+      filter.state = state;
+    }
+
+    // Category filter
+    if (category && category !== "all") {
+      filter.category = category;
+    }
+
+    // Status filter
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    // Date range filter
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) {
+        filter.date.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        filter.date.$lte = new Date(endDate);
+      }
+    }
+
+    // Search filter
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    // Get all expenses matching filters (no pagination for export)
+    const expenses = await Expense.find(filter)
+      .populate("createdBy", "name email")
+      .populate("approvedBy", "name email")
+      .sort({ date: -1 });
+
+    // Create workbook
+    const wb = new ExcelJS.Workbook();
+
+    // Create a sheet for each state
+    STATES.forEach(stateName => {
+      const sheet = wb.addWorksheet(stateName);
+      
+      // Set column headers
+      sheet.columns = [
+        { header: "Title", key: "title", width: 30 },
+        { header: "Amount", key: "amount", width: 15 },
+        { header: "Date", key: "date", width: 15 },
+        { header: "Category", key: "category", width: 15 },
+        { header: "Status", key: "status", width: 12 },
+        { header: "Description", key: "description", width: 40 },
+        { header: "Payment Method", key: "paymentMethod", width: 18 },
+        { header: "Created By", key: "createdBy", width: 20 }
+      ];
+
+      // Style header row
+      sheet.getRow(1).font = { bold: true };
+      sheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
+
+      // Filter expenses for this state
+      const stateExpenses = expenses.filter(e => e.state === stateName);
+
+      // Add rows
+      stateExpenses.forEach(expense => {
+        sheet.addRow({
+          title: expense.title,
+          amount: Number(expense.amount || 0),
+          date: new Date(expense.date).toLocaleDateString('en-AU'),
+          category: expense.category,
+          status: expense.status,
+          description: expense.description || '',
+          paymentMethod: expense.paymentMethod || '',
+          createdBy: expense.createdBy?.name || 'N/A'
+        });
+      });
+
+      // Add summary row at the bottom
+      if (stateExpenses.length > 0) {
+        const totalAmount = stateExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+        const lastRow = sheet.rowCount + 1;
+        sheet.getRow(lastRow).font = { bold: true };
+        sheet.getCell(`B${lastRow}`).value = totalAmount;
+        sheet.getCell(`A${lastRow}`).value = 'Total';
+      }
+    });
+
+    // Set response headers BEFORE writing
+    const dateStr = new Date().toISOString().split('T')[0];
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="Expenses_${dateStr}.xlsx"`
+    );
+
+    // Write workbook to response stream
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Export expenses Excel error:", error);
+    // Make sure we haven't already sent headers
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to export expenses to Excel",
+        error: error.message
+      });
+    } else {
+      // If headers already sent, we can't send JSON, so log the error
+      console.error("Cannot send error response - headers already sent");
+    }
   }
 };
