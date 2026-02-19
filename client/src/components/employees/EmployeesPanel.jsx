@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { showSuccess, showError } from "../../utils/toast";
-import { 
-  Plus, 
-  X, 
-  Edit2, 
-  Trash2, 
-  User, 
-  Mail, 
-  Phone, 
+import {
+  Plus,
+  X,
+  Edit2,
+  Trash2,
+  User,
+  Mail,
+  Phone,
   Briefcase,
   MapPin,
   Search,
   Filter,
   Loader2
 } from "lucide-react";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 export default function EmployeesPanel() {
   const [employees, setEmployees] = useState([]);
@@ -25,6 +26,16 @@ export default function EmployeesPanel() {
   const [filterRole, setFilterRole] = useState("All");
   const [filterState, setFilterState] = useState("All");
   const [formSubmitting, setFormSubmitting] = useState(false);
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    type: "danger",
+    isLoading: false
+  });
 
   const [form, setForm] = useState({
     name: "",
@@ -75,7 +86,7 @@ export default function EmployeesPanel() {
         await api.post("/employees", form);
         showSuccess("Employee added successfully");
       }
-      
+
       setShowForm(false);
       resetForm();
       fetchEmployees();
@@ -92,24 +103,33 @@ export default function EmployeesPanel() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete ${name}?`)) return;
-
-    try {
-      await api.delete(`/employees/${id}`);
-      showSuccess("Employee deleted successfully");
-      fetchEmployees();
-    } catch (err) {
-      showError(err.response?.data?.message || "Failed to delete employee");
-    }
+  const handleDelete = (id, name) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Employee",
+      message: `Are you sure you want to delete ${name}? This action cannot be undone.`,
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await api.delete(`/employees/${id}`);
+          showSuccess("Employee deleted successfully");
+          fetchEmployees();
+        } catch (err) {
+          showError(err.response?.data?.message || "Failed to delete employee");
+        } finally {
+          setConfirmModal({ isOpen: false, title: "", message: "", onConfirm: null, type: "danger", isLoading: false });
+        }
+      }
+    });
   };
 
   const filteredEmployees = employees.filter(emp => {
     const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         emp.email.toLowerCase().includes(searchTerm.toLowerCase());
+      emp.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === "All" || emp.role === filterRole;
     const matchesState = filterState === "All" || emp.state === filterState;
-    
+
     return matchesSearch && matchesRole && matchesState;
   });
 
@@ -381,13 +401,12 @@ export default function EmployeesPanel() {
                           </div>
                         </td>
                         <td className="py-4 px-6">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            emp.role === "Manager" 
-                              ? "bg-blue-100 text-blue-800"
-                              : emp.role === "HR"
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${emp.role === "Manager"
+                            ? "bg-blue-100 text-blue-800"
+                            : emp.role === "HR"
                               ? "bg-purple-100 text-purple-800"
                               : "bg-green-100 text-green-800"
-                          }`}>
+                            }`}>
                             {emp.role}
                           </span>
                         </td>
@@ -426,7 +445,7 @@ export default function EmployeesPanel() {
                   <User className="mx-auto text-gray-400" size={48} />
                   <h3 className="mt-4 text-lg font-medium text-gray-900">No employees found</h3>
                   <p className="mt-2 text-gray-600">
-                    {searchTerm || filterRole !== "All" || filterState !== "All" 
+                    {searchTerm || filterRole !== "All" || filterState !== "All"
                       ? "Try adjusting your search or filters"
                       : "Get started by adding your first employee"}
                   </p>
@@ -455,16 +474,16 @@ export default function EmployeesPanel() {
         </div>
       </div>
 
-      {/* Add CSS for animations */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-      `}</style>
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        isLoading={confirmModal.isLoading}
+      />
     </div>
   );
 }

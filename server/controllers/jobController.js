@@ -1,5 +1,6 @@
 const Job = require("../models/Job");
 const Task = require("../models/Task");
+const Employee = require("../models/Employee"); // Added for validation
 const { upsertJob } = require("../utils/excelService");
 
 exports.addJob = async (req, res) => {
@@ -8,7 +9,6 @@ exports.addJob = async (req, res) => {
     const populatedJob = await job.populate("assignedEmployee", "name");
 
     if (job.assignedEmployee) {
-      // Handle date conversion - job.date is a String, convert to Date if valid
       let dueDate = new Date();
       if (job.date) {
         const parsedDate = new Date(job.date);
@@ -64,7 +64,7 @@ exports.updateJobStatus = async (req, res) => {
     }
 
     const job = await Job.findById(req.params.id)
-    .populate("assignedEmployee", "name");
+      .populate("assignedEmployee", "name");
 
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
@@ -114,6 +114,18 @@ exports.assignCleaner = async (req, res) => {
       return res.status(404).json({ message: "Job not found" });
     }
 
+    // Validate employee exists and is in the same state
+    const employee = await Employee.findById(employeeId);
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    if (employee.state !== job.state) {
+      return res.status(400).json({
+        message: `Cannot assign ${employee.state} cleaner to ${job.state} job. Please select a cleaner from ${job.state}.`
+      });
+    }
+
     job.assignedEmployee = employeeId;
     await job.save();
 
@@ -123,7 +135,6 @@ exports.assignCleaner = async (req, res) => {
       task.assignedTo = employeeId;
       await task.save();
     } else {
-      // Handle date conversion - job.date is a String, convert to Date if valid
       let dueDate = new Date();
       if (job.date) {
         const parsedDate = new Date(job.date);

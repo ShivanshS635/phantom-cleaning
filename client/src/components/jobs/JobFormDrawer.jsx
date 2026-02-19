@@ -1,13 +1,13 @@
 // JobFormDrawer.jsx - Improved version
 import { useState, useEffect } from "react";
-import { 
-  X, 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Calendar, 
-  Clock, 
+import {
+  X,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  Clock,
   Clock4,
   DollarSign,
   FileText,
@@ -66,7 +66,14 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm(prev => {
+      const updates = { [name]: value };
+      // Clear assigned employee if state changes
+      if (name === "state") {
+        updates.assignedEmployee = "";
+      }
+      return { ...prev, ...updates };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -90,11 +97,11 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Drawer */}
       <div className="absolute inset-y-0 right-0 w-full max-w-2xl">
         <div className="h-full bg-white shadow-xl flex flex-col">
@@ -367,7 +374,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                     {showAdvanced ? "Hide advanced" : "Show advanced"}
                   </button>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Assign Cleaner (Optional)
@@ -380,7 +387,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                   >
                     <option value="">Select a cleaner</option>
                     {employees
-                      .filter(e => e.role === "Cleaner")
+                      .filter(e => e.role === "Cleaner" && e.state === form.state)
                       .map(emp => (
                         <option key={emp._id} value={emp._id}>
                           {emp.name} • {emp.state}

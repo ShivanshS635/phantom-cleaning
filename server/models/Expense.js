@@ -2,18 +2,18 @@ const mongoose = require("mongoose");
 
 const expenseSchema = new mongoose.Schema(
   {
-    title: { 
-      type: String, 
+    title: {
+      type: String,
       required: [true, "Expense title is required"],
       trim: true
     },
-    amount: { 
-      type: Number, 
+    amount: {
+      type: Number,
       required: [true, "Expense amount is required"],
       min: [0, "Amount cannot be negative"]
     },
-    date: { 
-      type: Date, 
+    date: {
+      type: Date,
       required: [true, "Expense date is required"],
       default: Date.now
     },
@@ -21,9 +21,9 @@ const expenseSchema = new mongoose.Schema(
       type: String,
       enum: [
         "Supplies",
-        "Equipment", 
+        "Equipment",
         "Travel",
-        "Marketing", 
+        "Marketing",
         "Office",
         "Software",
         "Services",
@@ -32,6 +32,11 @@ const expenseSchema = new mongoose.Schema(
         "Other"
       ],
       default: "Other"
+    },
+    state: {
+      type: String,
+      enum: ["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth"],
+      default: "Sydney"
     },
     description: {
       type: String,
@@ -67,7 +72,7 @@ const expenseSchema = new mongoose.Schema(
     },
     approvedAt: Date
   },
-  { 
+  {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
@@ -81,12 +86,12 @@ expenseSchema.index({ status: 1 });
 expenseSchema.index({ createdBy: 1 });
 
 // Virtual for formatted date
-expenseSchema.virtual('formattedDate').get(function() {
+expenseSchema.virtual('formattedDate').get(function () {
   return this.date.toISOString().split('T')[0];
 });
 
 // Instance method to mark as paid
-expenseSchema.methods.markAsPaid = function(userId) {
+expenseSchema.methods.markAsPaid = function (userId) {
   this.status = "Paid";
   this.approvedBy = userId;
   this.approvedAt = new Date();
@@ -94,7 +99,7 @@ expenseSchema.methods.markAsPaid = function(userId) {
 };
 
 // Static method to get total expenses for a period
-expenseSchema.statics.getTotalByPeriod = async function(startDate, endDate) {
+expenseSchema.statics.getTotalByPeriod = async function (startDate, endDate) {
   return this.aggregate([
     {
       $match: {
@@ -113,7 +118,7 @@ expenseSchema.statics.getTotalByPeriod = async function(startDate, endDate) {
 };
 
 // Static method to get expenses by category
-expenseSchema.statics.getByCategory = async function(startDate, endDate) {
+expenseSchema.statics.getByCategory = async function (startDate, endDate) {
   return this.aggregate([
     {
       $match: {

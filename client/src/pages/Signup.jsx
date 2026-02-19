@@ -23,7 +23,7 @@ export default function Signup() {
         name,
         email,
         password,
-        role: "Admin" // Default role
+        role: "Admin"
       });
 
       localStorage.setItem("token", res.data.token);

@@ -1,16 +1,16 @@
 // ExpenseFormDrawer.jsx - Updated for new backend
 import { useState, useEffect } from "react";
-import { 
-  X, 
-  DollarSign, 
-  Calendar, 
-  Tag, 
+import {
+  X,
+  DollarSign,
+  MapPin,
+  Calendar,
+  Tag,
   Upload,
   Loader2,
   Receipt,
   CheckCircle,
-  CreditCard,
-  Building
+  CreditCard
 } from "lucide-react";
 import api from "../../api/axios";
 import { showSuccess, showError } from "../../utils/toast";
@@ -31,7 +31,7 @@ export default function ExpenseFormDrawer({ expense, onClose, onSuccess, categor
     status: "Pending",
     receipt: "",
     paymentMethod: "Credit Card",
-    vendor: ""
+    state: "Sydney"
   });
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function ExpenseFormDrawer({ expense, onClose, onSuccess, categor
         status: expense.status || "Pending",
         receipt: expense.receipt || "",
         paymentMethod: expense.paymentMethod || "Credit Card",
-        vendor: expense.vendor || ""
+        state: expense.state || "Sydney"
       });
     }
   }, [expense]);
@@ -64,13 +64,13 @@ export default function ExpenseFormDrawer({ expense, onClose, onSuccess, categor
       // In a real app, upload to cloud storage here
       const formData = new FormData();
       formData.append('receipt', file);
-      
+
       const res = await api.post('/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       if (res.data.success) {
         setForm(prev => ({ ...prev, receipt: res.data.url }));
         showSuccess("Receipt uploaded successfully");
@@ -116,11 +116,11 @@ export default function ExpenseFormDrawer({ expense, onClose, onSuccess, categor
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Drawer */}
       <div className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-white shadow-2xl flex flex-col">
         {/* Header */}
@@ -183,7 +183,7 @@ export default function ExpenseFormDrawer({ expense, onClose, onSuccess, categor
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Date *
@@ -225,7 +225,7 @@ export default function ExpenseFormDrawer({ expense, onClose, onSuccess, categor
                   </select>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Status
@@ -245,44 +245,48 @@ export default function ExpenseFormDrawer({ expense, onClose, onSuccess, categor
               </div>
             </div>
 
-            {/* Payment Method & Vendor */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Payment Method
-                </label>
-                <div className="relative">
-                  <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                  <select
-                    name="paymentMethod"
-                    value={form.paymentMethod}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
-                  >
-                    {paymentMethods.map(method => (
-                      <option key={method} value={method}>
-                        {method}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            {/* State Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                State *
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  name="state"
+                  value={form.state}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
+                  required
+                >
+                  {["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth"].map(state => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Vendor
-                </label>
-                <div className="relative">
-                  <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                  <input
-                    type="text"
-                    name="vendor"
-                    value={form.vendor}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                    placeholder="Vendor name"
-                  />
-                </div>
+            </div>
+
+            {/* Payment Method */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Payment Method
+              </label>
+              <div className="relative">
+                <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  name="paymentMethod"
+                  value={form.paymentMethod}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
+                >
+                  {paymentMethods.map(method => (
+                    <option key={method} value={method}>
+                      {method}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -315,9 +319,9 @@ export default function ExpenseFormDrawer({ expense, onClose, onSuccess, categor
                     </div>
                     <div className="flex items-center justify-center gap-2">
                       <Receipt size={16} className="text-gray-400" />
-                      <a 
-                        href={form.receipt} 
-                        target="_blank" 
+                      <a
+                        href={form.receipt}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:underline"
                       >

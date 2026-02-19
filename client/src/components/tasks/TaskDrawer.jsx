@@ -1,9 +1,9 @@
 // TaskDrawer.jsx
 import { useState } from "react";
-import { 
-  X, 
-  Clock, 
-  MapPin, 
+import {
+  X,
+  Clock,
+  MapPin,
   User,
   Phone,
   Mail,
@@ -15,24 +15,19 @@ import {
 import api from "../../api/axios";
 import { showSuccess, showError } from "../../utils/toast";
 
-export default function TaskDrawer({ task, onClose, onRefresh }) {
+export default function TaskDrawer({ task, onClose, onRefresh, onUpdateStatus }) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [notes, setNotes] = useState(task?.notes || "");
 
   if (!task) return null;
 
-  const updateStatus = async (status) => {
-    try {
-      setLoading(true);
-      await api.put(`/tasks/${task._id}/status`, { status });
-      showSuccess(`Task marked as ${status}`);
-      onRefresh?.();
-      onClose();
-    } catch (err) {
-      showError("Failed to update task status");
-    } finally {
-      setLoading(false);
+  const updateStatus = (status) => {
+    if (onUpdateStatus) {
+      onUpdateStatus(task._id, status, () => {
+        onRefresh?.();
+        onClose();
+      });
     }
   };
 
@@ -61,11 +56,11 @@ export default function TaskDrawer({ task, onClose, onRefresh }) {
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Drawer */}
       <div className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-white shadow-2xl flex flex-col">
         {/* Header */}
@@ -73,23 +68,21 @@ export default function TaskDrawer({ task, onClose, onRefresh }) {
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-xs font-medium px-3 py-1 rounded-full ${
-                  task.status === "Completed" 
-                    ? "bg-green-100 text-green-700"
-                    : task.status === "In Progress"
+                <span className={`text-xs font-medium px-3 py-1 rounded-full ${task.status === "Completed"
+                  ? "bg-green-100 text-green-700"
+                  : task.status === "In Progress"
                     ? "bg-blue-100 text-blue-700"
                     : "bg-yellow-100 text-yellow-700"
-                }`}>
+                  }`}>
                   {task.status}
                 </span>
                 {task.priority && (
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    task.priority === "High" 
-                      ? "bg-red-100 text-red-700"
-                      : task.priority === "Medium"
+                  <span className={`text-xs px-2 py-1 rounded-full ${task.priority === "High"
+                    ? "bg-red-100 text-red-700"
+                    : task.priority === "Medium"
                       ? "bg-yellow-100 text-yellow-700"
                       : "bg-blue-100 text-blue-700"
-                  }`}>
+                    }`}>
                     {task.priority} Priority
                   </span>
                 )}
@@ -108,11 +101,10 @@ export default function TaskDrawer({ task, onClose, onRefresh }) {
           <div className="flex gap-2 mt-6">
             <button
               onClick={() => setActiveTab("details")}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === "details" 
-                  ? "bg-gray-900 text-white" 
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "details"
+                ? "bg-gray-900 text-white"
+                : "text-gray-600 hover:bg-gray-100"
+                }`}
             >
               Details
             </button>
@@ -131,7 +123,7 @@ export default function TaskDrawer({ task, onClose, onRefresh }) {
                 {task.description && (
                   <p className="text-gray-600">{task.description}</p>
                 )}
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <InfoBlock
                     icon={<Clock size={16} />}
@@ -310,7 +302,7 @@ export default function TaskDrawer({ task, onClose, onRefresh }) {
                 Start Task
               </button>
             )}
-            
+
             {task.status === "In Progress" && (
               <button
                 onClick={() => updateStatus("Completed")}

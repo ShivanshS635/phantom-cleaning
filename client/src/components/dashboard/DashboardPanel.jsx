@@ -9,7 +9,8 @@ import {
   RefreshCw,
   Lock,
   BarChart3,
-  Loader2
+  Loader2,
+  MapPin
 } from "lucide-react";
 import api from "../../api/axios";
 import { showError, showSuccess } from "../../utils/toast";
@@ -18,19 +19,20 @@ import DashboardFilters from "./DashboardFilters";
 import MonthlyReportDownload from "./MonthlyReportDownload";
 import DashboardStats from "./DashboardStats";
 
+const STATES = ["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth"];
+
 export default function DashboardPanel({ onLock }) {
   const [jobs, setJobs] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshLoading, setRefreshLoading] = useState(false);
+  const [selectedState, setSelectedState] = useState("All");
   const [dateRange, setDateRange] = useState({
     from: "",
     to: ""
   });
 
-  // Make sure expenses is always an array
-  const safeExpenses = useMemo(() => Array.isArray(expenses) ? expenses : [], [expenses]);
 
   const fetchAllData = async () => {
     setRefreshLoading(true);
@@ -102,7 +104,7 @@ export default function DashboardPanel({ onLock }) {
     loadData();
   }, []);
 
-  // Filter jobs by date range
+  // Filter jobs by date range and state
   const filteredJobs = useMemo(() => {
     const jobsArray = Array.isArray(jobs) ? jobs : [];
     return jobsArray.filter((job) => {
@@ -111,14 +113,33 @@ export default function DashboardPanel({ onLock }) {
         const jobDate = new Date(job.date);
         if (dateRange.from && jobDate < new Date(dateRange.from)) return false;
         if (dateRange.to && jobDate > new Date(dateRange.to)) return false;
+        if (selectedState !== "All" && job?.state !== selectedState) return false;
         return true;
       } catch {
         return false;
       }
     });
-  }, [jobs, dateRange]);
+  }, [jobs, dateRange, selectedState]);
 
-  // Calculate statistics with safe defaults
+  // Filter expenses by date range and state
+  const filteredExpenses = useMemo(() => {
+    const expensesArray = Array.isArray(expenses) ? expenses : [];
+    return expensesArray.filter((expense) => {
+      if (!expense?.date) return false;
+      try {
+        const expenseDate = new Date(expense.date);
+        if (dateRange.from && expenseDate < new Date(dateRange.from)) return false;
+        if (dateRange.to && expenseDate > new Date(dateRange.to)) return false;
+        if (selectedState !== "All" && expense?.state !== selectedState) return false;
+        return true;
+      } catch {
+        return false;
+      }
+    });
+  }, [expenses, dateRange, selectedState]);
+
+
+  // Calculate overall statistics with safe defaults
   const stats = useMemo(() => {
     const completedJobs = filteredJobs.filter(j => j?.status === "Completed");
     const revenue = completedJobs.reduce((sum, j) => {
@@ -126,7 +147,7 @@ export default function DashboardPanel({ onLock }) {
       return sum + price;
     }, 0);
     
-    const totalExpenses = safeExpenses.reduce((sum, e) => {
+    const totalExpenses = filteredExpenses.reduce((sum, e) => {
       const amount = parseFloat(e?.amount) || 0;
       return sum + amount;
     }, 0);
@@ -160,7 +181,8 @@ export default function DashboardPanel({ onLock }) {
       totalCleaners: employees.filter(e => e?.role === "Cleaner").length,
       avgJobValue: parseFloat(avgJobValue)
     };
-  }, [filteredJobs, safeExpenses, employees]);
+  }, [filteredJobs, filteredExpenses, employees]);
+
 
   if (loading) {
     return (
@@ -185,7 +207,10 @@ export default function DashboardPanel({ onLock }) {
                 <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
               </div>
               <p className="text-gray-600">
-                Overview of your business performance and analytics
+                {selectedState === "All" 
+                  ? "Overview of your business performance across all states"
+                  : `Overview of your business performance in ${selectedState}`
+                }
               </p>
             </div>
             
@@ -211,18 +236,35 @@ export default function DashboardPanel({ onLock }) {
             </div>
           </div>
 
-          {/* Stats Overview */}
+          {/* Overall Stats Overview */}
           <DashboardStats stats={stats} />
         </div>
 
         {/* Filters */}
         <div className="mb-6">
-          <DashboardFilters
-            from={dateRange.from}
-            to={dateRange.to}
-            setFrom={(value) => setDateRange(prev => ({ ...prev, from: value }))}
-            setTo={(value) => setDateRange(prev => ({ ...prev, to: value }))}
-          />
+          <div className="bg-white rounded-xl shadow border border-gray-200 p-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <DashboardFilters
+                from={dateRange.from}
+                to={dateRange.to}
+                setFrom={(value) => setDateRange(prev => ({ ...prev, from: value }))}
+                setTo={(value) => setDateRange(prev => ({ ...prev, to: value }))}
+              />
+              <div className="flex items-center gap-2">
+                <MapPin size={18} className="text-gray-500" />
+                <select
+                  value={selectedState}
+                  onChange={(e) => setSelectedState(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                >
+                  <option value="All">All States</option>
+                  {STATES.map(state => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Charts */}
@@ -230,7 +272,7 @@ export default function DashboardPanel({ onLock }) {
           <DashboardCharts 
             jobs={filteredJobs} 
             employees={employees}
-            expenses={safeExpenses}
+            expenses={filteredExpenses}
           />
         </div>
 

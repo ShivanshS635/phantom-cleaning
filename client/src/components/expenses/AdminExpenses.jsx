@@ -68,7 +68,7 @@ export default function AdminExpenses() {
       if (res.data.success) {
         // Create CSV data
         const csvData = [
-          ["Title", "Amount", "Date", "Category", "Status", "Description", "Vendor", "Payment Method"],
+          ["Title", "Amount", "Date", "Category", "Status", "Description", "Payment Method"],
           ...res.data.data.map(expense => [
             expense.title,
             expense.amount,
@@ -76,7 +76,6 @@ export default function AdminExpenses() {
             expense.category,
             expense.status,
             expense.description || '',
-            expense.vendor || '',
             expense.paymentMethod || ''
           ])
         ];

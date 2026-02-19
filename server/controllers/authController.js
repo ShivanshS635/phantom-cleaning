@@ -56,16 +56,6 @@ exports.login = async (req, res) => {
 
     const token = signToken(user);
 
-    console.log("User logged in:", {
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        role: user.role,
-        email: user.email,
-      },
-    });
-
     res.json({
       token,
       user: {

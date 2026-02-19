@@ -4,7 +4,7 @@ import { Filter, X } from "lucide-react";
 export default function ExpenseFilters({ category, dateRange, onCategoryChange, onDateRangeChange }) {
   const categories = [
     "all", "Supplies", "Equipment", "Travel", "Marketing", 
-    "Office", "Software", "Services", "Training", "Other"
+    "Office", "Software", "Services", "Training", "Salary", "Other"
   ];
 
   const applyPreset = (days) => {
