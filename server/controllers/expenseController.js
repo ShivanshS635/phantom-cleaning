@@ -66,8 +66,6 @@ exports.getExpenses = async (req, res) => {
 
     // Get expenses with filters
     const expenses = await Expense.find(filter)
-      .populate("createdBy", "name email")
-      .populate("approvedBy", "name email")
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit));
@@ -125,9 +123,7 @@ exports.getExpenses = async (req, res) => {
 
 exports.getExpenseById = async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id)
-      .populate("createdBy", "name email phone")
-      .populate("approvedBy", "name email");
+    const expense = await Expense.findById(req.params.id);
 
     if (!expense) {
       return res.status(404).json({
@@ -183,12 +179,8 @@ exports.addExpense = async (req, res) => {
       receipt,
       paymentMethod: paymentMethod || "Credit Card",
       vendor,
-      state: state || "Sydney",
-      createdBy: req.user.id
+      state: state || "Sydney"
     });
-
-    // Populate creator info
-    await expense.populate("createdBy", "name email");
 
     res.status(201).json({
       success: true,
@@ -247,15 +239,10 @@ exports.updateExpense = async (req, res) => {
 
     // If status changed to Paid, set approval info
     if (status === "Paid" && originalStatus !== "Paid") {
-      expense.approvedBy = req.user.id;
       expense.approvedAt = new Date();
     }
 
     await expense.save();
-
-    // Populate user info
-    await expense.populate("createdBy", "name email");
-    await expense.populate("approvedBy", "name email");
 
     res.json({
       success: true,
@@ -523,7 +510,6 @@ exports.updateExpenseStatus = async (req, res) => {
 
     // If marking as paid, set approval info
     if (status === "Paid") {
-      expense.approvedBy = req.user.id;
       expense.approvedAt = new Date();
     }
 
@@ -595,8 +581,6 @@ exports.exportExpensesExcel = async (req, res) => {
 
     // Get all expenses matching filters (no pagination for export)
     const expenses = await Expense.find(filter)
-      .populate("createdBy", "name email")
-      .populate("approvedBy", "name email")
       .sort({ date: -1 });
 
     // Create workbook
@@ -605,7 +589,7 @@ exports.exportExpensesExcel = async (req, res) => {
     // Create a sheet for each state
     STATES.forEach(stateName => {
       const sheet = wb.addWorksheet(stateName);
-      
+
       // Set column headers
       sheet.columns = [
         { header: "Title", key: "title", width: 30 },
@@ -614,8 +598,7 @@ exports.exportExpensesExcel = async (req, res) => {
         { header: "Category", key: "category", width: 15 },
         { header: "Status", key: "status", width: 12 },
         { header: "Description", key: "description", width: 40 },
-        { header: "Payment Method", key: "paymentMethod", width: 18 },
-        { header: "Created By", key: "createdBy", width: 20 }
+        { header: "Payment Method", key: "paymentMethod", width: 18 }
       ];
 
       // Style header row
@@ -638,8 +621,7 @@ exports.exportExpensesExcel = async (req, res) => {
           category: expense.category,
           status: expense.status,
           description: expense.description || '',
-          paymentMethod: expense.paymentMethod || '',
-          createdBy: expense.createdBy?.name || 'N/A'
+          paymentMethod: expense.paymentMethod || ''
         });
       });
 

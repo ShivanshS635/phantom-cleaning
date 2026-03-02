@@ -33,7 +33,9 @@ app.use("/api", limiter);
 ========================= */
 const allowedOrigins = [
   "https://phantom-cleaning.vercel.app",
-  "http://localhost:3000"
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
 ];
 
 app.use(
@@ -71,6 +73,7 @@ app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/tasks", require("./routes/task.routes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
 app.use("/api/reports", require("./routes/reportRoutes"));
+app.use("/api/salary", require("./routes/salaryRoutes"));
 
 app.get("/health", (req, res) => {
   res.status(200).send("OK");

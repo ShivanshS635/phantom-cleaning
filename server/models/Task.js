@@ -20,10 +20,6 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
     },
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
     job: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Job",

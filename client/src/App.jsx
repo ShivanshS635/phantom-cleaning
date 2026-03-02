@@ -3,7 +3,6 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login";
-import Signup from "./pages/Signup";
 import MainLayout from "./components/layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 
@@ -30,8 +29,7 @@ export default function App() {
         />
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={<Dashboard />} /> 
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route
             path="/"
             element={

@@ -1,23 +1,23 @@
-// ExpenseCategoryBadge.jsx
+// ExpenseCategoryBadge.jsx — Premium pill badges with icon per category
+const CATEGORY_CONFIG = {
+  Supplies: { color: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-400" },
+  Equipment: { color: "bg-purple-50 text-purple-700 border-purple-200", dot: "bg-purple-400" },
+  Travel: { color: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
+  Marketing: { color: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-400" },
+  Office: { color: "bg-rose-50 text-rose-700 border-rose-200", dot: "bg-rose-400" },
+  Software: { color: "bg-brand-50 text-brand-700 border-brand-200", dot: "bg-brand-400" },
+  Services: { color: "bg-pink-50 text-pink-700 border-pink-200", dot: "bg-pink-400" },
+  Training: { color: "bg-orange-50 text-orange-700 border-orange-200", dot: "bg-orange-400" },
+  Salary: { color: "bg-teal-50 text-teal-700 border-teal-200", dot: "bg-teal-400" },
+  Other: { color: "bg-surface-2 text-ink-secondary border-surface-3", dot: "bg-ink-disabled" },
+};
+
 export default function ExpenseCategoryBadge({ category }) {
-  const categoryColors = {
-    Supplies: "bg-blue-100 text-blue-700 border-blue-200",
-    Equipment: "bg-purple-100 text-purple-700 border-purple-200",
-    Travel: "bg-yellow-100 text-yellow-700 border-yellow-200",
-    Marketing: "bg-green-100 text-green-700 border-green-200",
-    Office: "bg-red-100 text-red-700 border-red-200",
-    Software: "bg-indigo-100 text-indigo-700 border-indigo-200",
-    Services: "bg-pink-100 text-pink-700 border-pink-200",
-    Training: "bg-orange-100 text-orange-700 border-orange-200",
-    Salary: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    Other: "bg-gray-100 text-gray-700 border-gray-200"
-  };
-
-  const colorClass = categoryColors[category] || categoryColors.Other;
-
+  const cfg = CATEGORY_CONFIG[category] || CATEGORY_CONFIG.Other;
   return (
-    <span className={`inline-block text-xs font-medium px-3 py-1 rounded-full border ${colorClass}`}>
-      {category}
+    <span className={`badge border ${cfg.color}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+      {category || "Other"}
     </span>
   );
 }

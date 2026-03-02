@@ -7,312 +7,283 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
-  RefreshCw
+  RefreshCw,
+  Briefcase,
 } from "lucide-react";
 import api from "../../api/axios";
 import JobCard from "./JobCard";
 import JobDrawer from "./JobDrawer";
 import JobFormDrawer from "./JobFormDrawer";
+import JobsCalendar from "./JobsCalender";
 import StatsOverview from "./StatsOverview";
 import { showError, showSuccess } from "../../utils/toast";
-
 import ConfirmationModal from "../common/ConfirmationModal";
 
+const STATUSES = ["All", "Upcoming", "Completed", "Redo", "Cancelled"];
+const AU_STATES = ["All", "Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth"];
+
 export default function JobsPanel() {
+  const [viewMode, setViewMode] = useState("list");
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
-
-  // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    onConfirm: null,
-    type: "danger",
-    isLoading: false
+    isOpen: false, title: "", message: "", onConfirm: null, type: "danger", isLoading: false,
   });
   const [showAddJob, setShowAddJob] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
   const [stateFilter, setStateFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [expandedSections, setExpandedSections] = useState({
-    today: true,
-    upcoming: true,
-    past: true
-  });
+  const [expandedSections, setExpandedSections] = useState({ today: true, upcoming: true, past: true });
 
   const handleStatusChange = (id, newStatus, onSuccess) => {
     setConfirmModal({
       isOpen: true,
       title: "Update Job Status",
-      message: `Are you sure you want to change the status to ${newStatus}?`,
+      message: `Change status to "${newStatus}"?`,
       type: "info",
-      confirmText: "Update Status",
+      confirmText: "Update",
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        setConfirmModal(p => ({ ...p, isLoading: true }));
         try {
           await api.patch(`/jobs/${id}/status`, { status: newStatus });
           showSuccess("Status updated");
           fetchJobs();
           if (onSuccess) onSuccess();
-        } catch (err) {
+        } catch {
           showError("Failed to update status");
         } finally {
           setConfirmModal({ isOpen: false, title: "", message: "", onConfirm: null, type: "danger", isLoading: false });
         }
-      }
+      },
     });
   };
+
   const fetchJobs = async () => {
     setLoading(true);
     try {
       const res = await api.get("/jobs");
       setJobs(res.data.data || []);
-    } catch (err) {
+    } catch {
       showError("Failed to load jobs");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
+  useEffect(() => { fetchJobs(); }, []);
 
   const filteredJobs = useMemo(() => {
-    let result = jobs;
-
-    if (statusFilter !== "All") {
-      result = result.filter(job => job.status === statusFilter);
-    }
-
-    if (stateFilter !== "All") {
-      result = result.filter(job => job.state === stateFilter);
-    }
-
+    let r = jobs;
+    if (statusFilter !== "All") r = r.filter(j => j.status === statusFilter);
+    if (stateFilter !== "All") r = r.filter(j => j.state === stateFilter);
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(job =>
-        job.customerName?.toLowerCase().includes(query) ||
-        job.address?.toLowerCase().includes(query) ||
-        job.phone?.includes(query)
+      const q = searchQuery.toLowerCase();
+      r = r.filter(j =>
+        j.customerName?.toLowerCase().includes(q) ||
+        j.address?.toLowerCase().includes(q) ||
+        j.phone?.includes(q)
       );
     }
-
-    return result;
+    return r;
   }, [jobs, statusFilter, stateFilter, searchQuery]);
 
   const groupedJobs = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     const groups = { today: [], upcoming: [], past: [] };
-
     filteredJobs.forEach(job => {
-      const jobDate = job.date;
-      if (jobDate === today) {
-        groups.today.push(job);
-      } else if (jobDate > today) {
-        groups.upcoming.push(job);
-      } else {
-        groups.past.push(job);
-      }
+      const d = job.date;
+      if (d === today) groups.today.push(job);
+      else if (d > today) groups.upcoming.push(job);
+      else groups.past.push(job);
     });
-
-    // Sort by date and time
-    Object.values(groups).forEach(group => {
-      group.sort((a, b) => {
-        const dateCompare = a.date.localeCompare(b.date);
-        if (dateCompare === 0) {
-          return (a.time || "").localeCompare(b.time || "");
-        }
-        return dateCompare;
-      });
-    });
-
+    Object.values(groups).forEach(g =>
+      g.sort((a, b) => a.date.localeCompare(b.date) || (a.time || "").localeCompare(b.time || ""))
+    );
     return groups;
   }, [filteredJobs]);
 
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  const toggleSection = (s) => setExpandedSections(p => ({ ...p, [s]: !p[s] }));
+
+  // Stat pills
+  const statPills = [
+    { label: "Total", count: jobs.length, color: "bg-surface-2 text-ink-primary" },
+    { label: "Today", count: groupedJobs.today.length, color: "bg-brand-50 text-brand-700" },
+    { label: "Upcoming", count: groupedJobs.upcoming.length, color: "bg-blue-50 text-blue-700" },
+    { label: "Completed", count: jobs.filter(j => j.status === "Completed").length, color: "bg-emerald-50 text-emerald-700" },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header with Stats */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Job Management</h1>
-              <p className="text-gray-600 mt-2">Manage and monitor all cleaning jobs</p>
+    <div className="min-h-screen bg-surface-1">
+      <div className="max-w-7xl mx-auto space-y-5">
+
+        {/* ── Header ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-brand-600/10 flex items-center justify-center">
+              <Briefcase size={18} className="text-brand-600" />
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowAddJob(true)}
-                className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-              >
-                <Plus size={20} />
-                Add New Job
-              </button>
-              <a
-                href="/jobs/calendar"
-                className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-              >
-                <CalendarIcon size={20} />
-                Calendar View
-              </a>
+            {/* Stat pills */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {statPills.map(({ label, count, color }) => (
+                <span key={label} className={`badge font-semibold ${color}`}>
+                  {count} {label}
+                </span>
+              ))}
             </div>
           </div>
-
-          <StatsOverview jobs={jobs} />
-        </div>
-
-        {/* Filters and Search */}
-        <div className="bg-white rounded-2xl shadow p-4 mb-6 border border-gray-200">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <div className="lg:col-span-5">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Search jobs by customer name, address, or phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div className="lg:col-span-4">
-              <div className="flex gap-4">
-                <div className="relative flex-1">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                  <select
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="All">All Statuses</option>
-                    <option value="Upcoming">Upcoming</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Redo">Redo</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                </div>
-
-                <div className="relative flex-1">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                  <select
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
-                    value={stateFilter}
-                    onChange={(e) => setStateFilter(e.target.value)}
-                  >
-                    <option value="All">All Filter</option>
-                    <option value="Sydney">Sydney</option>
-                    <option value="Melbourne">Melbourne</option>
-                    <option value="Brisbane">Brisbane</option>
-                    <option value="Adelaide">Adelaide</option>
-                    <option value="Perth">Perth</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-3">
-              <button
-                onClick={fetchJobs}
-                disabled={loading}
-                className="w-full inline-flex items-center justify-center gap-2 border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-                Refresh
-              </button>
-            </div>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setViewMode(v => v === "list" ? "calendar" : "list")}
+              className="btn-secondary text-sm"
+            >
+              {viewMode === "list" ? (
+                <><CalendarIcon size={15} /> Calendar</>
+              ) : (
+                <><Briefcase size={15} /> List View</>
+              )}
+            </button>
+            <button
+              onClick={() => setShowAddJob(true)}
+              className="btn-primary text-sm"
+            >
+              <Plus size={15} />
+              Add Job
+            </button>
           </div>
         </div>
 
-        {/* Loading State */}
+        {/* ── Stats Overview ── */}
+        <StatsOverview jobs={jobs} />
+
+        {/* ── Filter Bar ── */}
+        <div className="card p-3">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
+              <input
+                type="text"
+                placeholder="Search by customer, address, or phone…"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="input-premium pl-9 py-2.5 text-sm"
+              />
+            </div>
+
+            {/* Status filter */}
+            <div className="relative">
+              <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="input-premium pl-8 pr-10 py-2.5 text-sm w-40 appearance-none"
+              >
+                {STATUSES.map(s => <option key={s} value={s}>{s === "All" ? "All Statuses" : s}</option>)}
+              </select>
+            </div>
+
+            {/* State filter */}
+            <div className="relative">
+              <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+              <select
+                value={stateFilter}
+                onChange={e => setStateFilter(e.target.value)}
+                className="input-premium pl-8 pr-10 py-2.5 text-sm w-36 appearance-none"
+              >
+                {AU_STATES.map(s => <option key={s} value={s}>{s === "All" ? "All States" : s}</option>)}
+              </select>
+            </div>
+
+            {/* Refresh */}
+            <button
+              onClick={fetchJobs}
+              disabled={loading}
+              className="btn-secondary text-sm px-3"
+            >
+              <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+            </button>
+          </div>
+        </div>
+
+        {/* ── Content ── */}
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <RefreshCw size={40} className="text-gray-400 animate-spin mx-auto mb-4" />
-              <p className="text-gray-600">Loading jobs...</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="card p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="skeleton w-9 h-9 rounded-xl" />
+                  <div className="flex-1 space-y-2">
+                    <div className="skeleton h-4 w-32" />
+                    <div className="skeleton h-3 w-24" />
+                  </div>
+                </div>
+                <div className="skeleton h-3 w-full" />
+                <div className="skeleton h-3 w-3/4" />
+              </div>
+            ))}
           </div>
+        ) : viewMode === "calendar" ? (
+          <JobsCalendar jobs={filteredJobs} onRefresh={fetchJobs} />
         ) : (
-          <>
-            {/* Job Groups */}
-            <div className="space-y-6">
-              {/* Today's Jobs */}
-              {groupedJobs.today.length > 0 && (
-                <JobSection
-                  title="Today's Jobs"
-                  jobs={groupedJobs.today}
-                  count={groupedJobs.today.length}
-                  isExpanded={expandedSections.today}
-                  onToggle={() => toggleSection('today')}
-                  onSelectJob={setSelectedJob}
-                  onRefresh={fetchJobs}
-                />
-              )}
+          <div className="space-y-5">
+            {groupedJobs.today.length > 0 && (
+              <JobSection
+                title="Today's Jobs" emoji="🔥"
+                jobs={groupedJobs.today}
+                isExpanded={expandedSections.today}
+                onToggle={() => toggleSection("today")}
+                onSelectJob={setSelectedJob}
+                onRefresh={fetchJobs}
+                accentClass="border-amber-400 bg-amber-50 text-amber-700"
+              />
+            )}
+            {groupedJobs.upcoming.length > 0 && (
+              <JobSection
+                title="Upcoming" emoji="📅"
+                jobs={groupedJobs.upcoming}
+                isExpanded={expandedSections.upcoming}
+                onToggle={() => toggleSection("upcoming")}
+                onSelectJob={setSelectedJob}
+                onRefresh={fetchJobs}
+                accentClass="border-blue-400 bg-blue-50 text-blue-700"
+              />
+            )}
+            {groupedJobs.past.length > 0 && (
+              <JobSection
+                title="Past Jobs" emoji="📋"
+                jobs={groupedJobs.past}
+                isExpanded={expandedSections.past}
+                onToggle={() => toggleSection("past")}
+                onSelectJob={setSelectedJob}
+                onRefresh={fetchJobs}
+                accentClass="border-surface-3 bg-surface-2 text-ink-secondary"
+              />
+            )}
 
-              {/* Upcoming Jobs */}
-              {groupedJobs.upcoming.length > 0 && (
-                <JobSection
-                  title="Upcoming Jobs"
-                  jobs={groupedJobs.upcoming}
-                  count={groupedJobs.upcoming.length}
-                  isExpanded={expandedSections.upcoming}
-                  onToggle={() => toggleSection('upcoming')}
-                  onSelectJob={setSelectedJob}
-                  onRefresh={fetchJobs}
-                />
-              )}
-
-              {/* Past Jobs */}
-              {groupedJobs.past.length > 0 && (
-                <JobSection
-                  title="Past Jobs"
-                  jobs={groupedJobs.past}
-                  count={groupedJobs.past.length}
-                  isExpanded={expandedSections.past}
-                  onToggle={() => toggleSection('past')}
-                  onSelectJob={setSelectedJob}
-                  onRefresh={fetchJobs}
-                />
-              )}
-            </div>
-
-            {/* Empty State */}
-            {filteredJobs.length === 0 && !loading && (
-              <div className="bg-white rounded-2xl shadow border border-gray-200 p-12 text-center">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No jobs found
-                </h3>
-                <p className="text-gray-600 mb-6">
+            {filteredJobs.length === 0 && (
+              <div className="card p-16 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-surface-2 flex items-center justify-center mx-auto mb-4">
+                  <Briefcase size={24} className="text-ink-muted" />
+                </div>
+                <h3 className="text-base font-semibold text-ink-primary mb-1">No jobs found</h3>
+                <p className="text-sm text-ink-muted mb-6">
                   {searchQuery || statusFilter !== "All"
                     ? "Try adjusting your search or filters"
                     : "Get started by creating your first job"}
                 </p>
                 {!showAddJob && (
-                  <button
-                    onClick={() => setShowAddJob(true)}
-                    className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium"
-                  >
-                    <Plus size={20} />
-                    Create New Job
+                  <button onClick={() => setShowAddJob(true)} className="btn-primary mx-auto">
+                    <Plus size={16} /> Create First Job
                   </button>
                 )}
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
 
-      {/* Modals */}
+      {/* Drawers / Modals */}
       {selectedJob && (
         <JobDrawer
           job={selectedJob}
@@ -321,20 +292,15 @@ export default function JobsPanel() {
           onUpdateStatus={handleStatusChange}
         />
       )}
-
       {showAddJob && (
         <JobFormDrawer
           onClose={() => setShowAddJob(false)}
-          onSuccess={() => {
-            setShowAddJob(false);
-            fetchJobs();
-          }}
+          onSuccess={() => { setShowAddJob(false); fetchJobs(); }}
         />
       )}
-
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setConfirmModal(p => ({ ...p, isOpen: false }))}
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}
         message={confirmModal.message}
@@ -346,26 +312,29 @@ export default function JobsPanel() {
   );
 }
 
-function JobSection({ title, jobs, count, isExpanded, onToggle, onSelectJob, onRefresh }) {
+function JobSection({ title, emoji, jobs, isExpanded, onToggle, onSelectJob, onRefresh, accentClass }) {
   return (
-    <div className="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
+    <div className="card overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-surface-1 transition-colors border-b border-surface-3"
       >
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-          <span className="bg-gray-100 text-gray-700 text-sm font-medium px-2.5 py-0.5 rounded-full">
-            {count} {count === 1 ? 'job' : 'jobs'}
+          <span className="text-base">{emoji}</span>
+          <h2 className="text-sm font-semibold text-ink-primary">{title}</h2>
+          <span className={`badge border ${accentClass}`}>
+            {jobs.length} {jobs.length === 1 ? "job" : "jobs"}
           </span>
         </div>
-        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        {isExpanded
+          ? <ChevronUp size={16} className="text-ink-muted" />
+          : <ChevronDown size={16} className="text-ink-muted" />}
       </button>
 
       {isExpanded && (
-        <div className="px-6 pb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {jobs.map((job) => (
+        <div className="p-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {jobs.map(job => (
               <JobCard
                 key={job._id}
                 job={job}

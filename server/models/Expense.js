@@ -61,15 +61,6 @@ const expenseSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true
-    },
-    approvedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
-    },
     approvedAt: Date
   },
   {
@@ -83,7 +74,6 @@ const expenseSchema = new mongoose.Schema(
 expenseSchema.index({ date: -1 });
 expenseSchema.index({ category: 1 });
 expenseSchema.index({ status: 1 });
-expenseSchema.index({ createdBy: 1 });
 
 // Virtual for formatted date
 expenseSchema.virtual('formattedDate').get(function () {
@@ -91,9 +81,8 @@ expenseSchema.virtual('formattedDate').get(function () {
 });
 
 // Instance method to mark as paid
-expenseSchema.methods.markAsPaid = function (userId) {
+expenseSchema.methods.markAsPaid = function () {
   this.status = "Paid";
-  this.approvedBy = userId;
   this.approvedAt = new Date();
   return this.save();
 };

@@ -389,7 +389,7 @@ server/
 - `status` (Enum): "Pending" | "Paid" | "Reimbursed" | "Cancelled"
 - `receipt` (String): URL to receipt image (optional)
 - `paymentMethod` (Enum): "Cash" | "Credit Card" | "Bank Transfer" | "PayPal" | "Other"
-- `vendor` (String): Vendor name
+- `state` (Enum): "Sydney" | "Melbourne" | "Brisbane" | "Adelaide" | "Perth" (default: "Sydney")
 - `createdBy` (ObjectId, ref: "User", required): Creator
 - `approvedBy` (ObjectId, ref: "User"): Approver (set when status = "Paid")
 - `approvedAt` (Date): Approval timestamp
@@ -509,6 +509,19 @@ server/
   4. Calculate totals (totalAmount, count, avgAmount)
 - **Output**: `{ success, data: { byCategory, monthlyTrend, statusBreakdown, totals } }`
 
+**`exportExpensesExcel(req, res)`**
+- **Purpose**: Export expenses to Excel with separate sheets for each state
+- **Query Params**: `category`, `status`, `startDate`, `endDate`, `search`, `state` (same filters as getExpenses)
+- **Process**:
+  1. Fetch all expenses matching filters (no pagination)
+  2. Create ExcelJS workbook
+  3. Create separate sheet for each state (Sydney, Melbourne, Brisbane, Adelaide, Perth)
+  4. Each sheet includes: Title, Amount, Date, Category, Status, Description, Payment Method, Created By
+  5. Add summary row (total) at bottom of each state sheet
+  6. Stream Excel file to client
+- **Output**: Excel file stream (`.xlsx` format)
+- **File Name**: `Expenses_YYYY-MM-DD.xlsx`
+
 #### `controllers/dashboardController.js`
 
 **`getDashboardStats(req, res)`**
@@ -553,6 +566,7 @@ server/
 #### `routes/expenseRoutes.js`
 - `GET /api/expenses` - Admin only - Get expenses (with filters)
 - `GET /api/expenses/stats/summary` - Admin only - Get expense statistics
+- `GET /api/expenses/export/excel` - Admin only - Export expenses to Excel (state-wise sheets)
 - `GET /api/expenses/:id` - Admin only - Get single expense
 - `POST /api/expenses` - Admin only - Create expense
 - `PUT /api/expenses/:id` - Admin only - Update expense
@@ -679,9 +693,15 @@ client/src/
 
 **Components used**:
 - `DashboardWrapper`: Handles admin unlock modal
-- `DashboardPanel`: Main dashboard UI
+- `DashboardPanel`: Main dashboard UI with state-wise filtering
 - `DashboardStats`: KPI cards
 - `DashboardCharts`: Revenue, profit, job status charts
+
+**Features**:
+- **State Filter**: Dropdown to filter dashboard content by state (All, Sydney, Melbourne, Brisbane, Adelaide, Perth)
+- **Dynamic Updates**: All stats, charts, and metrics update based on selected state filter
+- **Date Range Filter**: Filter data by custom date range
+- **Real-time Calculations**: Revenue, expenses, profit, and KPIs calculated for filtered data
 
 ### Components
 
@@ -723,8 +743,10 @@ client/src/
 **Data flow**:
 1. `fetchExpenseStats()` → `GET /api/expenses/stats/summary`
 2. `ExpensesPanel` → `GET /api/expenses` (with filters)
-3. Filters: `filterCategory`, `filterDateRange`
-4. Export: Fetches all expenses, converts to CSV, downloads
+3. Filters: `filterCategory`, `filterDateRange`, `state`
+4. Export Options:
+   - **CSV Export**: Fetches all expenses, converts to CSV, downloads
+   - **Excel Export**: Calls `GET /api/expenses/export/excel` to download Excel file with separate sheets for each state
 
 **Why separate from dashboard**: Expenses are a major feature, deserve dedicated panel
 
@@ -945,10 +967,25 @@ return token ? children : <Navigate to="/login" />;
   "category": "Supplies",
   "description": "Bulk purchase of detergents",
   "paymentMethod": "Credit Card",
-  "vendor": "Supply Co"
+  "state": "Sydney"
 }
 ```
 **Response**: `{ "success": true, "message": "Expense added", "data": {...} }`
+
+**Note**: The `vendor` field has been removed from the expense form. Expenses are now organized by state instead.
+
+#### `GET /api/expenses/export/excel?category=Supplies&startDate=2026-01-01&endDate=2026-01-31`
+**Auth**: Admin only  
+**Query Params**: Same filters as `GET /api/expenses` (category, status, startDate, endDate, search, state)  
+**Response**: Excel file stream (binary)  
+**Headers**: 
+- `Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- `Content-Disposition: attachment; filename=Expenses_YYYY-MM-DD.xlsx`
+
+**Excel Structure**:
+- **Separate sheet for each state**: Sydney, Melbourne, Brisbane, Adelaide, Perth
+- **Columns**: Title, Amount, Date, Category, Status, Description, Payment Method, Created By
+- **Summary row**: Total amount at bottom of each state sheet
 
 #### `GET /api/expenses/stats/summary?startDate=2026-01-01&endDate=2026-01-31`
 **Auth**: Admin only  
@@ -1086,7 +1123,7 @@ return token ? children : <Navigate to="/login" />;
   status: "Pending" | "Paid" | "Reimbursed" | "Cancelled",
   receipt: String (URL),
   paymentMethod: "Cash" | "Credit Card" | "Bank Transfer" | "PayPal" | "Other",
-  vendor: String,
+  state: "Sydney" | "Melbourne" | "Brisbane" | "Adelaide" | "Perth",
   createdBy: ObjectId (ref: "User"),
   approvedBy: ObjectId (ref: "User"),
   approvedAt: Date,
@@ -1360,7 +1397,8 @@ Create employees, then create jobs to test the system.
 - [ ] Email notifications for job assignments
 - [ ] Real-time dashboard updates (WebSockets or polling)
 - [ ] Mobile-responsive improvements
-- [ ] Export expenses to CSV (currently only Excel)
+- [x] Export expenses to Excel with state-wise sheets
+- [x] State-wise dashboard filtering
 
 ### Medium-Term (3-6 months)
 - [ ] Customer management module
@@ -1411,4 +1449,23 @@ For questions or support, please open an issue in the repository.
 ---
 
 **Last Updated**: February 2026  
-**Version**: 1.0.0
+**Version**: 1.1.0
+
+## Recent Updates (v1.1.0)
+
+### Expense Management Enhancements
+- ✅ Added "Salary" category to expense categories
+- ✅ Removed vendor field from expense form (simplified expense entry)
+- ✅ Added Excel export for expenses with separate sheets for each state
+- ✅ Expenses now include state field for better organization
+
+### Dashboard Improvements
+- ✅ Added state-wise filtering to admin dashboard
+- ✅ All dashboard metrics (stats, charts, KPIs) update dynamically based on selected state
+- ✅ Date range filtering works in conjunction with state filtering
+- ✅ Improved dashboard subtitle to show current filter state
+
+### Export Features
+- ✅ CSV export for expenses (existing)
+- ✅ Excel export for expenses with state-wise organization (new)
+- ✅ Monthly report export with state-wise job breakdowns (existing)
