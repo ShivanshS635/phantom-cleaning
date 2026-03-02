@@ -47,7 +47,6 @@ export default function EmployeesPanel() {
   const [form, setForm] = useState({
     name: "", email: "", phone: "", role: "Cleaner", state: "Sydney",
   });
-  const [inviteLink, setInviteLink] = useState("");
 
   const roles = ["All", "Cleaner", "Manager", "HR"];
   const states = ["All", "Sydney", "Melbourne", "Adelaide", "Perth", "Brisbane"];
@@ -77,16 +76,14 @@ export default function EmployeesPanel() {
         // Edit existing employee
         await api.put(`/employees/${editingId}`, form);
         showSuccess("Employee updated");
-        setShowForm(false);
-        resetForm();
-        fetchEmployees();
       } else {
-        // Invite new member
-        const res = await api.post("/auth/invite", { email: form.email, role: form.role });
-        setInviteLink(res.data.inviteLink);
-        showSuccess("Invitation link generated!");
-        // We do not close the form immediately so they can copy the link
+        // Direct addition of new employee
+        await api.post("/employees", form);
+        showSuccess("Employee added successfully");
       }
+      setShowForm(false);
+      resetForm();
+      fetchEmployees();
     } catch (err) {
       showError(err.response?.data?.message || "Operation failed");
     } finally { setFormSubmitting(false); }
@@ -140,150 +137,92 @@ export default function EmployeesPanel() {
             </span>
           </div>
           <button
-            onClick={() => { if (showForm) { setShowForm(false); resetForm(); setInviteLink(""); } else setShowForm(true); }}
+            onClick={() => { if (showForm) { setShowForm(false); resetForm(); } else setShowForm(true); }}
             className={showForm ? "btn-secondary text-sm" : "btn-primary text-sm shadow-brand"}
           >
-            {showForm ? <><X size={15} />Close</> : <><Mail size={15} />Invite Member</>}
+            {showForm ? <><X size={15} />Close</> : <><Plus size={15} />Add Employee</>}
           </button>
         </div>
 
-        {/* ── Add/Edit / Invite Form ── */}
+        {/* ── Add/Edit Form ── */}
         {showForm && (
           <div className="card p-6 animate-fade-up border border-brand-500/20">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-base font-semibold text-ink-primary">
-                  {editingId ? "Edit Employee" : "Invite New Member"}
+                  {editingId ? "Edit Employee" : "Add New Employee"}
                 </h2>
-                {!editingId && <p className="text-xs text-ink-muted mt-1">Send a secure registration link to a new team member.</p>}
+                {!editingId && <p className="text-xs text-ink-muted mt-1">Directly add a new team member to the system.</p>}
               </div>
               <button
-                onClick={() => { setShowForm(false); resetForm(); setInviteLink(""); }}
+                onClick={() => { setShowForm(false); resetForm(); }}
                 className="p-1.5 rounded-lg hover:bg-surface-2 text-ink-muted transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {inviteLink ? (
-              <div className="bg-brand-50 border border-brand-200 rounded-xl p-5 space-y-3 animate-fade-up">
-                <div className="flex items-center gap-2 text-brand-700">
-                  <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center">
-                    <Mail size={16} />
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                {[{ label: "Full Name", name: "name", type: "text", icon: User },
+                { label: "Email", name: "email", type: "email", icon: Mail },
+                { label: "Phone", name: "phone", type: "tel", icon: Phone }
+                ].map(({ label, name, type, icon: Icon }) => (
+                  <div key={name} className="space-y-1.5">
+                    <label className="block text-xs font-medium text-ink-secondary uppercase tracking-wider">{label}</label>
+                    <div className="relative">
+                      <Icon size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
+                      <input
+                        type={type} name={name} value={form[name]}
+                        onChange={e => setForm(p => ({ ...p, [e.target.name]: e.target.value }))}
+                        required className="input-premium pl-9 text-sm"
+                      />
+                    </div>
                   </div>
-                  <h3 className="font-semibold text-sm">Invitation Generated Successfully</h3>
+                ))}
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-ink-secondary uppercase tracking-wider">Assigned Role</label>
+                  <div className="relative">
+                    <Briefcase size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
+                    <select
+                      name="role" value={form.role}
+                      onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
+                      className="input-premium pl-9 pr-4 text-sm appearance-none"
+                    >
+                      <option>Cleaner</option>
+                      <option>Manager</option>
+                      <option>HR</option>
+                    </select>
+                  </div>
                 </div>
-                <p className="text-sm text-brand-700/80">
-                  Share this secure link with the new team member. It expires in 48 hours.
-                </p>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={inviteLink}
-                    className="input-premium flex-1 truncate bg-white font-mono text-xs"
-                    onClick={(e) => { e.target.select(); navigator.clipboard.writeText(inviteLink); showSuccess("Link copied to clipboard!"); }}
-                  />
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(inviteLink); showSuccess("Link copied to clipboard!"); }}
-                    className="btn-primary py-2.5 text-sm whitespace-nowrap"
-                  >
-                    Copy Link
-                  </button>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="block text-xs font-medium text-ink-secondary uppercase tracking-wider">Location</label>
+                  <div className="relative">
+                    <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
+                    <select
+                      name="state" value={form.state}
+                      onChange={e => setForm(p => ({ ...p, state: e.target.value }))}
+                      className="input-premium pl-9 pr-4 text-sm appearance-none"
+                      required
+                    >
+                      {["Sydney", "Melbourne", "Adelaide", "Perth", "Brisbane"].map(s => <option key={s}>{s}</option>)}
+                    </select>
+                  </div>
                 </div>
-                <button
-                  onClick={() => { setShowForm(false); resetForm(); setInviteLink(""); }}
-                  className="btn-secondary w-full text-sm mt-2"
-                >
-                  Done
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-surface-3">
+                <button type="button" onClick={() => { setShowForm(false); resetForm(); }} className="btn-secondary text-sm" disabled={formSubmitting}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary text-sm shadow-brand" disabled={formSubmitting}>
+                  {formSubmitting && <Loader2 size={15} className="animate-spin" />}
+                  {editingId ? "Update Employee" : "Add Employee"}
                 </button>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                  {editingId ? (
-                    // Edit Mode (Legacy direct edit support)
-                    <>
-                      {[{ label: "Full Name", name: "name", type: "text", icon: User },
-                      { label: "Email", name: "email", type: "email", icon: Mail },
-                      { label: "Phone", name: "phone", type: "tel", icon: Phone }
-                      ].map(({ label, name, type, icon: Icon }) => (
-                        <div key={name} className="space-y-1.5">
-                          <label className="block text-xs font-medium text-ink-secondary uppercase tracking-wider">{label}</label>
-                          <div className="relative">
-                            <Icon size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                              type={type} name={name} value={form[name]}
-                              onChange={e => setForm(p => ({ ...p, [e.target.name]: e.target.value }))}
-                              required className="input-premium pl-9 text-sm"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </>
-                  ) : (
-                    // Invite Mode
-                    <div className="md:col-span-2 space-y-1.5">
-                      <label className="block text-xs font-medium text-ink-secondary uppercase tracking-wider">Email Address</label>
-                      <div className="relative">
-                        <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-                        <input
-                          type="email" name="email" value={form.email}
-                          onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                          placeholder="team.member@example.com"
-                          required className="input-premium pl-9 text-sm"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className={editingId ? "" : "md:col-span-2"}>
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-medium text-ink-secondary uppercase tracking-wider">Assigned Role</label>
-                      <div className="relative">
-                        <Briefcase size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-                        <select
-                          name="role" value={form.role}
-                          onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
-                          className="input-premium pl-9 pr-4 text-sm appearance-none border-brand-500/30 focus:border-brand-500/50 focus:ring-brand-500/20"
-                        >
-                          <option>Cleaner</option>
-                          <option>Manager</option>
-                          <option>HR</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {editingId && (
-                    <div className="md:col-span-2 space-y-1.5">
-                      <label className="block text-xs font-medium text-ink-secondary uppercase tracking-wider">Location</label>
-                      <div className="relative">
-                        <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-                        <select
-                          name="state" value={form.state}
-                          onChange={e => setForm(p => ({ ...p, state: e.target.value }))}
-                          className="input-premium pl-9 pr-4 text-sm appearance-none"
-                          required
-                        >
-                          {["Sydney", "Melbourne", "Adelaide", "Perth", "Brisbane"].map(s => <option key={s}>{s}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-surface-3">
-                  <button type="button" onClick={() => { setShowForm(false); resetForm(); }} className="btn-secondary text-sm" disabled={formSubmitting}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-primary text-sm shadow-brand" disabled={formSubmitting}>
-                    {formSubmitting && <Loader2 size={15} className="animate-spin" />}
-                    {editingId ? "Update Employee" : "Generate Invitation Link"}
-                  </button>
-                </div>
-              </form>
-            )}
+            </form>
           </div>
         )}
 
