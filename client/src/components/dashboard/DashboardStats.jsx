@@ -1,6 +1,5 @@
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
   Users,
   Calendar,
