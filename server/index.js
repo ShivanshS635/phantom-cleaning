@@ -11,28 +11,11 @@ connectDB();
 const app = express();
 
 /* =========================
-   TRUST PROXY (RENDER FIX)
-========================= */
-app.set("trust proxy", 1);
-
-/* =========================
-   SECURITY
-========================= */
-app.use(helmet());
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false
-});
-app.use("/api", limiter);
-
-/* =========================
-   CORS
-========================= */
+   CORS (MUST BE BEFORE OTHER MIDDLEWARE)
+   ========================= */
 const allowedOrigins = [
   "https://phantom-cleaning.vercel.app",
+  "https://phantom-cleaning-shivanshs635s-projects.vercel.app",
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3002",
@@ -42,16 +25,41 @@ app.use(
   cors({
     origin(origin, callback) {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+      const isAllowed = allowedOrigins.some(o => origin === o || origin === o + "/");
+      if (isAllowed) return callback(null, true);
+      console.log(`CORS blocked for origin: ${origin}`);
       return callback(new Error("CORS not allowed"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   })
 );
+
+
+/* =========================
+   TRUST PROXY (RENDER FIX)
+========================= */
+app.set("trust proxy", 1);
+
+/* =========================
+   SECURITY
+========================= */
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === "OPTIONS"
+});
+app.use("/api", limiter);
+
 
 /* =========================
    BODY PARSER
