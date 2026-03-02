@@ -18,7 +18,6 @@ import TaskPanel from "../tasks/TaskPanel";
 import AdminExpenses from "../expenses/AdminExpenses";
 import PayrollPanel from "../payroll/PayrollPanel";
 
-const SALARY_ENABLED = import.meta.env.VITE_SALARY_MODULE_ENABLED === "true" || true; // Defaulting to true as per user request to build it
 
 const NAV_ITEMS = [
   { id: "tasks", label: "Tasks", icon: CheckSquare },
@@ -53,10 +52,14 @@ function getUserName() {
   }
 }
 
+const SALARY_ENABLED = import.meta.env.VITE_SALARY_MODULE_ENABLED === "true";
+
 export default function MainLayout() {
   const [activePanel, setActivePanel] = useState("tasks");
   const [collapsed, setCollapsed] = useState(false);
   const userName = getUserName();
+
+  const filteredNav = NAV_ITEMS.filter(item => item.id !== "payroll" || SALARY_ENABLED);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -101,7 +104,7 @@ export default function MainLayout() {
 
         {/* Nav */}
         <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+          {filteredNav.map(({ id, label, icon: Icon }) => {
             const isActive = activePanel === id;
             return (
               <button

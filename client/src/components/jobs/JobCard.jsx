@@ -48,7 +48,6 @@ function getAvatarGradient(name = "") {
 
 export default function JobCard({ job, onClick }) {
   const config = STATUS_CONFIG[job.status] || STATUS_CONFIG.Upcoming;
-  const StatusIcon = config.icon;
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr + "T00:00:00");

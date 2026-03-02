@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
-  Plus, Download, Edit2, Trash2, Receipt, DollarSign, Calendar, Loader2,
+  Plus, Download, Edit2, Trash2, Receipt, Calendar, Loader2,
   ChevronDown, ChevronUp, Search, AlertCircle, CheckCircle, ChevronLeft,
-  ChevronRight, MapPin, FileSpreadsheet, SlidersHorizontal, Filter,
+  ChevronRight, MapPin, FileSpreadsheet, Filter,
 } from "lucide-react";
 import api from "../../api/axios";
 import { showError, showSuccess } from "../../utils/toast";

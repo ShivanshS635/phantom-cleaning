@@ -7,11 +7,10 @@ import api from "../../api/axios";
 import { showError } from "../../utils/toast";
 import ExpensesPanel from "./ExpensesPanel";
 
-const AU_STATES = ["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth"];
 
 export default function AdminExpenses() {
   const [expenseStats, setExpenseStats] = useState(null);
-  const [selectedState, setSelectedState] = useState("All");
+  const [selectedState] = useState("All");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

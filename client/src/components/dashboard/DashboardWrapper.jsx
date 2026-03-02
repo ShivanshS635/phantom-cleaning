@@ -1,5 +1,5 @@
 import { useState, useEffect, Suspense, lazy } from "react";
-import { AlertTriangle, Lock, ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 import AdminUnlockModal from "../admin/AdminUnlockModal";
 import { isAdminUnlocked, lockAdmin } from "../../utils/adminAuth";
 import { useNavigate } from "react-router-dom";
