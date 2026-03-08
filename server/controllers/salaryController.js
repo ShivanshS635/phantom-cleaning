@@ -3,10 +3,9 @@ const Employee = require("../models/Employee");
 const mongoose = require("mongoose");
 const ExcelJS = require("exceljs");
 
-const checkModuleEnabled = () => process.env.SALARY_MODULE_ENABLED === "true";
+
 
 exports.getSalaries = async (req, res) => {
-    if (!checkModuleEnabled()) return res.status(404).json({ message: "Salary module disabled" });
 
     try {
         const { state, month, year, status, page = 1, limit = 50 } = req.query;
@@ -47,7 +46,6 @@ exports.getSalaries = async (req, res) => {
 };
 
 exports.addSalary = async (req, res) => {
-    if (!checkModuleEnabled()) return res.status(404).json({ message: "Salary module disabled" });
 
     try {
         const salaryData = req.body;
@@ -90,7 +88,6 @@ exports.addSalary = async (req, res) => {
 };
 
 exports.updateSalary = async (req, res) => {
-    if (!checkModuleEnabled()) return res.status(404).json({ message: "Salary module disabled" });
 
     try {
         const salary = await Salary.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -102,7 +99,6 @@ exports.updateSalary = async (req, res) => {
 };
 
 exports.getSalarySummary = async (req, res) => {
-    if (!checkModuleEnabled()) return res.status(404).json({ message: "Salary module disabled" });
 
     try {
         const { state, year = new Date().getFullYear() } = req.query;
@@ -147,7 +143,6 @@ exports.getSalarySummary = async (req, res) => {
 };
 
 exports.exportSalariesExcel = async (req, res) => {
-    if (!checkModuleEnabled()) return res.status(404).json({ message: "Salary module disabled" });
 
     try {
         const { state, year } = req.query;

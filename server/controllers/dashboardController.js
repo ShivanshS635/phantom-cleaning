@@ -29,15 +29,11 @@ exports.getDashboardStats = async (req, res) => {
     ]);
     const totalExpenses = expenseAgg[0]?.total || 0;
 
-    // 3. Calculate Total Salaries
-    let totalSalaries = 0;
-    if (process.env.SALARY_MODULE_ENABLED === "true") {
-      const salaryAgg = await Salary.aggregate([
-        { $match: { status: "Paid" } },
-        { $group: { _id: null, total: { $sum: "$totalAmount" } } }
-      ]);
-      totalSalaries = salaryAgg[0]?.total || 0;
-    }
+    const salaryAgg = await Salary.aggregate([
+      { $match: { status: "Paid" } },
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    ]);
+    const totalSalaries = salaryAgg[0]?.total || 0;
 
     const netRevenue = grossRevenue - totalExpenses - totalSalaries;
 

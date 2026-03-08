@@ -18,9 +18,6 @@ import TaskPanel from "../tasks/TaskPanel";
 import AdminExpenses from "../expenses/AdminExpenses";
 const PayrollPanel = lazy(() => import("../payroll/PayrollPanel"));
 
-const SALARY_ENABLED = process.env.REACT_APP_SALARY_MODULE_ENABLED === "true";
-
-
 const NAV_ITEMS = [
   { id: "tasks", label: "Tasks", icon: CheckSquare },
   { id: "jobs", label: "Jobs", icon: Briefcase },
@@ -58,8 +55,6 @@ export default function MainLayout() {
   const [activePanel, setActivePanel] = useState("tasks");
   const [collapsed, setCollapsed] = useState(false);
   const userName = getUserName();
-
-  const filteredNav = NAV_ITEMS.filter(item => item.id !== "payroll" || SALARY_ENABLED);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -104,7 +99,7 @@ export default function MainLayout() {
 
         {/* Nav */}
         <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
-          {filteredNav.map(({ id, label, icon: Icon }) => {
+          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
             const isActive = activePanel === id;
             return (
               <button
@@ -184,7 +179,7 @@ export default function MainLayout() {
             {activePanel === "employees" && <EmployeesPanel />}
             {activePanel === "dashboard" && <DashboardWrapper />}
             {activePanel === "expenses" && <AdminExpenses />}
-            {activePanel === "payroll" && SALARY_ENABLED && (
+            {activePanel === "payroll" && (
               <Suspense fallback={
                 <div className="flex items-center justify-center h-64">
                   <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin" />
