@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Download, Filter, Search, Calendar } from 'lucide-react';
+import { Plus, Download, Filter, Search, Calendar, Coins } from 'lucide-react';
 import api from '../../api/axios';
 import { showError } from '../../utils/toast';
 import SalarySummaryCards from './SalarySummaryCards';
@@ -17,7 +17,8 @@ export default function PayrollPanel() {
         state: 'All',
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
-        status: 'all'
+        status: 'all',
+        search: ''
     });
 
     const fetchPayrollData = useCallback(async () => {
@@ -61,23 +62,28 @@ export default function PayrollPanel() {
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header Actions */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h2 className="text-xl font-bold text-white">Payroll Dashboard</h2>
-                    <p className="text-sm text-slate-400">Manage weekly salaries and financial tracking</p>
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-brand-600/10 flex items-center justify-center">
+                        <Coins size={18} className="text-brand-600" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-ink-primary">Payroll Dashboard</h2>
+                        <p className="text-sm text-ink-muted">Manage weekly salaries and financial tracking</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-2.5 w-full sm:w-auto">
                     <button
                         onClick={handleExport}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-all"
+                        className="btn-secondary gap-2 text-sm"
                     >
-                        <Download size={18} className="text-slate-400" />
+                        <Download size={16} className="text-ink-muted" />
                         <span>Export</span>
                     </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl transition-all shadow-lg shadow-brand-600/20"
+                        className="btn-primary gap-2 text-sm shadow-brand"
                     >
-                        <Plus size={18} />
+                        <Plus size={16} />
                         <span>Add Salary</span>
                     </button>
                 </div>
@@ -86,41 +92,43 @@ export default function PayrollPanel() {
             <SalarySummaryCards summary={summary} loading={loading} />
 
             {/* Filters Bar */}
-            <div className="glass rounded-2xl p-4 border border-white/8 flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5 border border-white/5">
-                    <Filter size={16} className="text-slate-500" />
+            <div className="card p-4 flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2 bg-surface-1 rounded-xl px-3 py-2 border border-surface-3">
+                    <Filter size={15} className="text-ink-muted" />
                     <select
                         value={filters.state}
                         onChange={(e) => setFilters({ ...filters, state: e.target.value })}
-                        className="bg-transparent text-sm text-slate-300 focus:outline-none"
+                        className="bg-transparent text-sm text-ink-secondary focus:outline-none appearance-none pr-6 cursor-pointer"
                     >
-                        {STATES.map(s => <option key={s} value={s} className="bg-slate-900">{s}</option>)}
+                        {STATES.map(s => <option key={s} value={s}>{s === 'All' ? 'All States' : s}</option>)}
                     </select>
                 </div>
 
-                <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5 border border-white/5">
-                    <Calendar size={16} className="text-slate-500" />
+                <div className="flex items-center gap-2 bg-surface-1 rounded-xl px-3 py-2 border border-surface-3">
+                    <Calendar size={15} className="text-ink-muted" />
                     <select
                         value={filters.month}
                         onChange={(e) => setFilters({ ...filters, month: e.target.value })}
-                        className="bg-transparent text-sm text-slate-300 focus:outline-none"
+                        className="bg-transparent text-sm text-ink-secondary focus:outline-none appearance-none pr-6 cursor-pointer"
                     >
                         {Array.from({ length: 12 }, (_, i) => (
-                            <option key={i + 1} value={i + 1} className="bg-slate-900">
+                            <option key={i + 1} value={i + 1}>
                                 {new Date(0, i).toLocaleString('default', { month: 'long' })}
                             </option>
                         ))}
                     </select>
                 </div>
 
-                <div className="flex-1" />
+                <div className="flex-1 min-w-[8px]" />
 
-                <div className="relative w-full md:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                <div className="relative w-full md:w-72">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" size={15} />
                     <input
                         type="text"
-                        placeholder="Search employee..."
-                        className="w-full bg-white/5 border border-white/8 rounded-xl py-2 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-500/50 transition-all"
+                        placeholder="Search employee by name..."
+                        className="input-premium pl-10 py-2 text-sm"
+                        value={filters.search}
+                        onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                     />
                 </div>
             </div>

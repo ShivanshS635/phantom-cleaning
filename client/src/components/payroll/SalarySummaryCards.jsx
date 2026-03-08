@@ -1,57 +1,66 @@
 import React from 'react';
 import { Clock, CheckCircle2, DollarSign } from 'lucide-react';
 
-export default function SalarySummaryCards({ summary, loading }) {
-    const cards = [
-        {
-            label: "Total Payroll",
-            value: `$${summary.totalPayroll?.toLocaleString()}`,
-            sub: `${summary.count} entries`,
-            icon: DollarSign,
-            color: "text-brand-400",
-            bg: "bg-brand-400/10",
-            border: "border-brand-400/20"
-        },
-        {
-            label: "Paid Salaries",
-            value: `$${summary.paidAmount?.toLocaleString()}`,
-            sub: "Processed successfully",
-            icon: CheckCircle2,
-            color: "text-green-400",
-            bg: "bg-green-400/10",
-            border: "border-green-400/20"
-        },
-        {
-            label: "Pending Payment",
-            value: `$${summary.pendingAmount?.toLocaleString()}`,
-            sub: "Needs your attention",
-            icon: Clock,
-            color: "text-amber-400",
-            bg: "bg-amber-400/10",
-            border: "border-amber-400/20"
-        }
-    ];
+const CARD_CONFIGS = [
+    {
+        key: "totalPayroll",
+        title: "Total Payroll",
+        icon: DollarSign,
+        gradient: "from-brand-500 to-indigo-500",
+        bg: "bg-brand-50",
+        border: "border-brand-100",
+        format: (v) => `$${v?.toLocaleString()}`
+    },
+    {
+        key: "paidAmount",
+        title: "Paid Salaries",
+        icon: CheckCircle2,
+        gradient: "from-emerald-500 to-teal-500",
+        bg: "bg-emerald-50",
+        border: "border-emerald-100",
+        format: (v) => `$${v?.toLocaleString()}`
+    },
+    {
+        key: "pendingAmount",
+        title: "Pending Payment",
+        icon: Clock,
+        gradient: "from-amber-500 to-orange-500",
+        bg: "bg-amber-50",
+        border: "border-amber-100",
+        format: (v) => `$${v?.toLocaleString()}`
+    }
+];
 
+export default function SalarySummaryCards({ summary, loading }) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {cards.map((card, i) => (
-                <div key={i} className={`glass rounded-2xl p-5 border ${card.border} relative overflow-hidden group hover:scale-[1.02] transition-all`}>
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{card.label}</p>
-                            <h3 className={`text-2xl font-bold mt-1 ${card.color}`}>
-                                {loading ? <div className="h-8 w-24 bg-white/5 animate-pulse rounded" /> : card.value}
-                            </h3>
-                            <p className="text-xs text-slate-500 mt-1">{card.sub}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {CARD_CONFIGS.map((cfg) => {
+                const value = summary[cfg.key] || 0;
+                return (
+                    <div
+                        key={cfg.key}
+                        className={`stat-card border ${cfg.border} animate-fade-up`}
+                    >
+                        <div className="flex items-start justify-between mb-4">
+                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cfg.gradient} flex items-center justify-center shadow-sm`}>
+                                <cfg.icon size={18} className="text-white" />
+                            </div>
                         </div>
-                        <div className={`p-3 rounded-xl ${card.bg}`}>
-                            <card.icon size={20} className={card.color} />
-                        </div>
+
+                        <p className="text-xs font-medium text-ink-muted uppercase tracking-wider mb-1">{cfg.title}</p>
+                        <h3 className="text-2xl font-bold text-ink-primary">
+                            {loading ? <div className="h-8 w-24 bg-surface-2 animate-pulse rounded" /> : cfg.format(value)}
+                        </h3>
+
+                        <p className="text-xs text-ink-muted mt-1.5">
+                            {cfg.key === 'totalPayroll' ? `${summary.count || 0} entries this year` :
+                                cfg.key === 'paidAmount' ? 'Processed successfully' : 'Awaiting payment'}
+                        </p>
+
+                        <div className={`mt-4 h-0.5 rounded-full bg-gradient-to-r ${cfg.gradient} opacity-20`} />
                     </div>
-                    {/* Subtle Glow */}
-                    <div className={`absolute -bottom-6 -right-6 w-24 h-24 blur-3xl opacity-20 rounded-full ${card.bg}`} />
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 }

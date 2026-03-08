@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import {
   LayoutDashboard,
   Briefcase,
@@ -16,7 +16,9 @@ import EmployeesPanel from "../employees/EmployeesPanel";
 import DashboardWrapper from "../dashboard/DashboardWrapper";
 import TaskPanel from "../tasks/TaskPanel";
 import AdminExpenses from "../expenses/AdminExpenses";
-import PayrollPanel from "../payroll/PayrollPanel";
+const PayrollPanel = lazy(() => import("../payroll/PayrollPanel"));
+
+const SALARY_ENABLED = process.env.REACT_APP_SALARY_MODULE_ENABLED === "true";
 
 
 const NAV_ITEMS = [
@@ -51,8 +53,6 @@ function getUserName() {
     return "Admin";
   }
 }
-
-const SALARY_ENABLED = import.meta.env.VITE_SALARY_MODULE_ENABLED === "true";
 
 export default function MainLayout() {
   const [activePanel, setActivePanel] = useState("tasks");
@@ -184,10 +184,16 @@ export default function MainLayout() {
             {activePanel === "employees" && <EmployeesPanel />}
             {activePanel === "dashboard" && <DashboardWrapper />}
             {activePanel === "expenses" && <AdminExpenses />}
-            {activePanel === "payroll" && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <PayrollPanel />
-              </div>
+            {activePanel === "payroll" && SALARY_ENABLED && (
+              <Suspense fallback={
+                <div className="flex items-center justify-center h-64">
+                  <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin" />
+                </div>
+              }>
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <PayrollPanel />
+                </div>
+              </Suspense>
             )}
           </div>
         </main>

@@ -115,63 +115,63 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="bg-slate-900 w-full max-w-5xl max-h-[95vh] flex flex-col rounded-[2rem] border border-white/10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
-                {/* Header: Solid & Compact */}
-                <div className="bg-slate-800/50 px-8 py-5 border-b border-white/5 flex justify-between items-center shrink-0">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ink-primary/40 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-surface-0 w-full max-w-5xl max-h-[95vh] flex flex-col rounded-2xl border border-surface-3 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-surface-3 flex justify-between items-center bg-surface-1 shrink-0">
                     <div>
-                        <h2 className="text-xl font-bold text-white tracking-tight">Generate Payroll</h2>
-                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest mt-0.5">Weekly Salary Entry</p>
+                        <h2 className="text-lg font-bold text-ink-primary tracking-tight">Generate Payroll</h2>
+                        <p className="text-[10px] text-ink-muted font-bold uppercase tracking-widest mt-0.5">Weekly Salary Entry</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl text-slate-400 transition-all">
+                    <button onClick={onClose} className="p-2 hover:bg-surface-2 rounded-xl text-ink-muted transition-all">
                         <X size={20} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-                    {/* Basic Info: Sleek Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/2 p-5 rounded-2xl border border-white/5">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                <User size={12} className="text-brand-400" /> Employee
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-surface-1/50 p-5 rounded-xl border border-surface-3">
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-ink-secondary uppercase tracking-wider flex items-center gap-2">
+                                <User size={12} className="text-brand-600" /> Employee
                             </label>
                             <select
                                 required
-                                className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500/50 transition-all"
+                                className="input-premium py-2"
                                 value={formData.employee}
                                 onChange={(e) => {
                                     const emp = employees.find(x => x._id === e.target.value);
                                     setFormData({ ...formData, employee: e.target.value, state: emp?.state || 'Sydney' });
                                 }}
                             >
-                                <option value="" className="bg-slate-900">Select Employee</option>
-                                {employees.map(e => <option key={e._id} value={e._id} className="bg-slate-900">{e.name}</option>)}
+                                <option value="">Select Employee</option>
+                                {employees.map(e => <option key={e._id} value={e._id}>{e.name}</option>)}
                             </select>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                <Calendar size={12} className="text-brand-400" /> Start Date
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-ink-secondary uppercase tracking-wider flex items-center gap-2">
+                                <Calendar size={12} className="text-brand-600" /> Start Date
                             </label>
                             <input
                                 type="date"
                                 required
-                                className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500/50 transition-all"
+                                className="input-premium py-2"
                                 value={formData.weekStartDate}
                                 onChange={(e) => setFormData({ ...formData, weekStartDate: e.target.value })}
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                <DollarSign size={12} className="text-brand-400" /> Base Salary
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-ink-secondary uppercase tracking-wider flex items-center gap-2">
+                                <DollarSign size={12} className="text-brand-600" /> Base Pay (if any)
                             </label>
                             <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted text-sm">$</span>
                                 <input
                                     type="number"
                                     placeholder="0.00"
-                                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl pl-8 pr-4 py-2.5 text-sm text-white font-semibold focus:outline-none focus:border-brand-500/50"
+                                    className="input-premium pl-8 py-2 font-semibold"
                                     value={formData.baseSalary}
                                     onChange={(e) => setFormData({ ...formData, baseSalary: e.target.value })}
                                 />
@@ -179,51 +179,35 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                         </div>
                     </div>
 
-                    {/* Daily Breakdown: Table Structure */}
+                    {/* Daily Breakdown */}
                     <div className="space-y-4">
-                        <div className="flex items-center gap-3 px-1">
-                            <div className="h-4 w-1 bg-brand-500 rounded-full"></div>
-                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Daily Breakdown</h3>
+                        <div className="flex items-center gap-2 px-1">
+                            <div className="h-4 w-1 bg-brand-600 rounded-full"></div>
+                            <h3 className="text-xs font-bold text-ink-primary uppercase tracking-widest">Daily Commission</h3>
+                            <span className="text-[10px] text-ink-muted font-normal lowercase ml-2">(Enter total payout earned for each day)</span>
                         </div>
 
-                        <div className="bg-white/2 rounded-2xl border border-white/5 overflow-hidden">
+                        <div className="bg-surface-0 rounded-xl border border-surface-3 overflow-hidden shadow-sm">
                             <table className="w-full border-collapse">
-                                <thead className="bg-white/5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">
+                                <thead className="bg-surface-1 text-[10px] font-bold text-ink-muted uppercase tracking-widest">
                                     <tr>
-                                        <th className="py-3 font-bold border-r border-white/5">Day</th>
-                                        <th className="py-3 font-bold border-r border-white/5 text-blue-400">Hours</th>
-                                        <th className="py-3 font-bold text-green-400">Salary Amount</th>
+                                        <th className="py-3 px-6 font-bold border-r border-surface-3 text-left">Day</th>
+                                        <th className="py-3 px-6 font-bold text-emerald-600 text-center">Commission Amount</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-white/5">
+                                <tbody className="divide-y divide-surface-3">
                                     {DAYS.map(day => (
-                                        <tr key={day} className="group hover:bg-white/2 transition-colors">
-                                            <td className="py-3 px-6 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-white/5 w-32">
+                                        <tr key={day} className="group hover:bg-surface-1/50 transition-colors">
+                                            <td className="py-3 px-6 text-[11px] font-bold text-ink-secondary uppercase tracking-widest border-r border-surface-3 w-48 bg-surface-1/30">
                                                 {day}
                                             </td>
-                                            <td className="py-2 px-6 border-r border-white/5">
-                                                <input
-                                                    type="number"
-                                                    step="0.5"
-                                                    placeholder="0.0"
-                                                    className="w-full bg-transparent text-center text-blue-400 text-sm font-bold focus:outline-none"
-                                                    value={formData.dailyBreakdown[day].hours}
-                                                    onChange={(e) => setFormData({
-                                                        ...formData,
-                                                        dailyBreakdown: {
-                                                            ...formData.dailyBreakdown,
-                                                            [day]: { ...formData.dailyBreakdown[day], hours: e.target.value }
-                                                        }
-                                                    })}
-                                                />
-                                            </td>
                                             <td className="py-2 px-6">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <span className="text-xs text-green-500/50 font-bold">$</span>
+                                                <div className="flex items-center justify-center gap-3">
+                                                    <span className="text-xs text-emerald-600/50 font-bold">$</span>
                                                     <input
                                                         type="number"
                                                         placeholder="0.00"
-                                                        className="w-full bg-transparent text-center text-green-400 text-sm font-bold focus:outline-none"
+                                                        className="w-full max-w-[120px] bg-transparent text-center text-emerald-700 text-sm font-bold focus:outline-none"
                                                         value={formData.dailyBreakdown[day].amount}
                                                         onChange={(e) => setFormData({
                                                             ...formData,
@@ -242,25 +226,25 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                         </div>
                     </div>
 
-                    {/* Adjustments: Side-by-Side Cards */}
+                    {/* Adjustments */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="bg-white/2 rounded-2x border border-white/5 p-5 space-y-4">
+                        <div className="bg-surface-0 rounded-xl border border-surface-3 p-5 space-y-4 shadow-sm">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <Plus size={12} className="text-green-500" /> Bonuses
+                                <h3 className="text-[10px] font-bold text-ink-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <Plus size={12} className="text-emerald-600" /> Bonuses
                                 </h3>
-                                <button type="button" onClick={addBonus} className="text-[10px] font-bold text-brand-400 hover:text-brand-300 uppercase tracking-wider transition-colors">
+                                <button type="button" onClick={addBonus} className="text-[10px] font-bold text-brand-600 hover:text-brand-700 uppercase tracking-wider transition-colors">
                                     + Add Item
                                 </button>
                             </div>
-                            <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2">
                                 {formData.bonuses.length === 0 ? (
-                                    <p className="text-[10px] text-slate-600 italic text-center py-4">No bonuses added</p>
+                                    <p className="text-[10px] text-ink-disabled italic text-center py-4">No bonuses added</p>
                                 ) : formData.bonuses.map((bonus, i) => (
                                     <div key={i} className="flex gap-2">
                                         <input
                                             placeholder="Description"
-                                            className="flex-1 bg-slate-800/50 border border-white/5 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500/30"
+                                            className="flex-1 input-premium py-1.5 text-xs"
                                             value={bonus.description}
                                             onChange={(e) => {
                                                 const newB = [...formData.bonuses];
@@ -271,7 +255,7 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                                         <input
                                             type="number"
                                             placeholder="Amt"
-                                            className="w-20 bg-slate-800/50 border border-white/5 rounded-lg px-3 py-2 text-xs text-green-400 font-bold focus:outline-none"
+                                            className="w-20 input-premium py-1.5 text-xs text-emerald-600 font-bold"
                                             value={bonus.amount}
                                             onChange={(e) => {
                                                 const newB = [...formData.bonuses];
@@ -284,23 +268,23 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                             </div>
                         </div>
 
-                        <div className="bg-white/2 rounded-2xl border border-white/5 p-5 space-y-4">
+                        <div className="bg-surface-0 rounded-xl border border-surface-3 p-5 space-y-4 shadow-sm">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <X size={12} className="text-red-500" /> Deductions
+                                <h3 className="text-[10px] font-bold text-ink-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <X size={12} className="text-rose-600" /> Deductions
                                 </h3>
-                                <button type="button" onClick={addDeduction} className="text-[10px] font-bold text-red-400 hover:text-red-300 uppercase tracking-wider transition-colors">
+                                <button type="button" onClick={addDeduction} className="text-[10px] font-bold text-rose-600 hover:text-rose-700 uppercase tracking-wider transition-colors">
                                     + Add Item
                                 </button>
                             </div>
-                            <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2">
                                 {formData.deductions.length === 0 ? (
-                                    <p className="text-[10px] text-slate-600 italic text-center py-4">No deductions added</p>
+                                    <p className="text-[10px] text-ink-disabled italic text-center py-4">No deductions added</p>
                                 ) : formData.deductions.map((ded, i) => (
                                     <div key={i} className="flex gap-2">
                                         <input
                                             placeholder="Reason"
-                                            className="flex-1 bg-slate-800/50 border border-white/5 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500/30"
+                                            className="flex-1 input-premium py-1.5 text-xs"
                                             value={ded.description}
                                             onChange={(e) => {
                                                 const newD = [...formData.deductions];
@@ -311,7 +295,7 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                                         <input
                                             type="number"
                                             placeholder="Amt"
-                                            className="w-20 bg-slate-800/50 border border-white/5 rounded-lg px-3 py-2 text-xs text-red-400 font-bold focus:outline-none"
+                                            className="w-20 input-premium py-1.5 text-xs text-rose-600 font-bold"
                                             value={ded.amount}
                                             onChange={(e) => {
                                                 const newD = [...formData.deductions];
@@ -326,21 +310,14 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                     </div>
                 </form>
 
-                {/* Footer: Dynamic Recap */}
-                <div className="bg-slate-800/80 px-8 py-6 border-t border-white/10 shrink-0">
-                    <div className="flex flex-col sm:flex-row justify-between items-end gap-6">
-                        <div className="flex gap-8">
+                {/* Footer */}
+                <div className="bg-surface-1 px-8 py-5 border-t border-surface-3 shrink-0">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                        <div className="flex items-center">
                             <div>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Hours</p>
-                                <p className="text-xl font-bold text-white mt-1">
-                                    {DAYS.reduce((sum, d) => sum + (Number(formData.dailyBreakdown[d].hours) || 0), 0)} <span className="text-xs text-slate-500 font-normal ml-0.5">Hrs</span>
-                                </p>
-                            </div>
-                            <div className="w-px h-10 bg-white/5"></div>
-                            <div>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Calculated Net</p>
-                                <p className="text-xl font-bold text-white mt-1">
-                                    ${formData.totalAmount.toLocaleString()}
+                                <p className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Total Payout</p>
+                                <p className="text-2xl font-black text-brand-600 mt-0.5">
+                                    ${Number(formData.totalAmount).toLocaleString()}
                                 </p>
                             </div>
                         </div>
@@ -349,7 +326,8 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="flex-1 sm:flex-none px-8 py-3 bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-sm rounded-xl transition-all border border-white/5"
+                                className="btn-secondary px-8"
+                                disabled={loading}
                             >
                                 Cancel
                             </button>
@@ -357,7 +335,7 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                                 type="submit"
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-10 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-brand-600/20 disabled:opacity-50"
+                                className="btn-primary px-10 shadow-brand"
                             >
                                 {loading ? (
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

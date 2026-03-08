@@ -15,68 +15,70 @@ export default function SalaryTable({ salaries, loading, refresh }) {
     };
 
     if (loading) return (
-        <div className="glass rounded-2xl border border-white/8 h-64 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+        <div className="card h-64 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
     );
 
     return (
-        <div className="glass rounded-2xl border border-white/8 overflow-hidden">
+        <div className="card overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="border-b border-white/5 bg-white/2">
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Employee</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Period</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Amount</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">State</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+                        <tr className="border-b border-surface-3 bg-surface-1">
+                            <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Employee</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Period</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Amount</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">State</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-surface-3">
                         {salaries.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="px-6 py-12 text-center text-slate-500 italic">No records found</td>
+                                <td colSpan="6" className="px-6 py-12 text-center text-ink-disabled italic">No payroll records found</td>
                             </tr>
                         ) : salaries.map((s) => (
-                            <tr key={s._id} className="hover:bg-white/2 transition-colors group">
+                            <tr key={s._id} className="table-row-hover group">
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center text-brand-400 font-bold text-xs">
+                                        <div className="w-8 h-8 rounded-lg bg-brand-600/10 flex items-center justify-center text-brand-700 font-bold text-xs">
                                             {s.employee?.name?.[0] || 'E'}
                                         </div>
                                         <div>
-                                            <p className="text-sm font-semibold text-white">{s.employee?.name || 'Unknown'}</p>
-                                            <p className="text-[10px] text-slate-500 uppercase tracking-tight">{s.employee?.role || 'Staff'}</p>
+                                            <p className="text-sm font-semibold text-ink-primary">{s.employee?.name || 'Unknown'}</p>
+                                            <p className="text-[10px] text-ink-muted uppercase tracking-tight">{s.employee?.role || 'Staff'}</p>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <p className="text-sm text-slate-300">Week {s.weekNumber}</p>
-                                    <p className="text-[10px] text-slate-500">{new Date(s.weekStartDate).toLocaleDateString()}</p>
+                                    <p className="text-xs font-medium text-ink-secondary">Week {s.weekNumber}</p>
+                                    <p className="text-[10px] text-ink-muted">{new Date(s.weekStartDate).toLocaleDateString()}</p>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <p className="text-sm font-bold text-brand-400">${s.totalAmount.toLocaleString()}</p>
+                                    <p className="text-sm font-bold text-ink-primary">${s.totalAmount?.toLocaleString()}</p>
                                     <div className="flex gap-2 items-center">
-                                        <p className="text-[10px] text-slate-500">
-                                            {s.weeklyTotals?.totalHours > 0 ? `${s.weeklyTotals.totalHours} hrs` : (s.baseSalary > 0 ? `$${s.baseSalary} base` : 'Dynamic')}
+                                        <p className="text-[10px] text-ink-muted">
+                                            {s.weeklyTotals?.totalHours > 0 ? `${s.weeklyTotals.totalHours} Jobs` : (s.baseSalary > 0 ? `$${s.baseSalary} base pay` : 'Dynamic')}
                                         </p>
                                         {s.weeklyTotals?.totalDailyAmount > 0 && (
-                                            <p className="text-[10px] text-green-500/70 font-bold">+ ${s.weeklyTotals.totalDailyAmount}</p>
+                                            <p className="text-[10px] text-emerald-600 font-bold">+ ${s.weeklyTotals.totalDailyAmount}</p>
                                         )}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-medium text-slate-400">
+                                    <span className="badge bg-surface-2 text-ink-secondary font-semibold">
                                         {s.state}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider ${s.status === 'Paid' ? 'text-green-400' : 'text-amber-400'
+                                    <div className={`badge ${s.status === 'Paid'
+                                        ? 'bg-emerald-50 text-emerald-700'
+                                        : 'bg-amber-50 text-amber-700'
                                         }`}>
                                         {s.status === 'Paid' ? <CheckCircle size={12} /> : <Clock size={12} />}
-                                        {s.status}
+                                        <span className="font-bold tracking-wider">{s.status.toUpperCase()}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-right">
@@ -84,13 +86,13 @@ export default function SalaryTable({ salaries, loading, refresh }) {
                                         {s.status === 'Unpaid' && (
                                             <button
                                                 onClick={() => handleMarkAsPaid(s._id)}
-                                                className="p-1.5 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-all"
+                                                className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-all shadow-sm"
                                                 title="Mark as Paid"
                                             >
                                                 <CheckCircle size={14} />
                                             </button>
                                         )}
-                                        <button className="p-1.5 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all">
+                                        <button className="p-1.5 rounded-lg bg-surface-2 text-ink-muted hover:text-ink-primary transition-all border border-surface-3">
                                             <Edit3 size={14} />
                                         </button>
                                     </div>
