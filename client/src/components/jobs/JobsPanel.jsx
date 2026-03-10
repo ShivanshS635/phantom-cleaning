@@ -262,18 +262,18 @@ export default function JobsPanel() {
             )}
 
             {filteredJobs.length === 0 && (
-              <div className="card p-16 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-surface-2 flex items-center justify-center mx-auto mb-4">
-                  <Briefcase size={24} className="text-ink-muted" />
+              <div className="card p-16 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 rounded-full bg-surface-1 border border-surface-3 flex items-center justify-center mb-5">
+                  <Briefcase size={28} className="text-ink-muted" />
                 </div>
-                <h3 className="text-base font-semibold text-ink-primary mb-1">No jobs found</h3>
-                <p className="text-sm text-ink-muted mb-6">
+                <h3 className="text-lg font-bold text-ink-primary mb-1.5">No jobs found</h3>
+                <p className="text-sm font-medium text-ink-secondary mb-6 max-w-sm">
                   {searchQuery || statusFilter !== "All"
-                    ? "Try adjusting your search or filters"
-                    : "Get started by creating your first job"}
+                    ? "Try adjusting your search or filters to find what you're looking for."
+                    : "Get started by creating your first job."}
                 </p>
                 {!showAddJob && (
-                  <button onClick={() => setShowAddJob(true)} className="btn-primary mx-auto">
+                  <button onClick={() => setShowAddJob(true)} className="btn-primary">
                     <Plus size={16} /> Create First Job
                   </button>
                 )}

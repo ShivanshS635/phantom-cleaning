@@ -64,21 +64,25 @@ export default function JobsCalendar({ jobs = [], onRefresh }) {
 
   return (
     <div className="card h-[calc(100vh-220px)] min-h-[600px] p-5 animate-fade-in">
-      <Calendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        view={currentView}
-        onView={setCurrentView}
-        date={currentDate}
-        onNavigate={setCurrentDate}
-        views={["month", "week", "day"]}
-        style={{ height: "100%", fontFamily: "Inter, sans-serif" }}
-        onSelectEvent={(event) => setSelectedJob(event.resource)}
-        eventPropGetter={eventStyleGetter}
-        className="premium-calendar"
-      />
+      <div className="overflow-x-auto overflow-y-hidden h-full pb-2">
+        <div className="min-w-[800px] h-full relative">
+          <Calendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            view={currentView}
+            onView={setCurrentView}
+            date={currentDate}
+            onNavigate={setCurrentDate}
+            views={["month", "week", "day"]}
+            style={{ height: "100%", fontFamily: "var(--font-heading)" }}
+            onSelectEvent={(event) => setSelectedJob(event.resource)}
+            eventPropGetter={eventStyleGetter}
+            className="premium-calendar"
+          />
+        </div>
+      </div>
 
       {selectedJob && (
         <JobDrawer

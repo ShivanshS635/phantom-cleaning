@@ -16,16 +16,16 @@ module.exports = {
           900: "#312e81",
         },
         surface: {
-          0: "#ffffff",
-          1: "#f8fafc",
-          2: "#f1f5f9",
-          3: "#e2e8f0",
+          0: "#ffffff", // Pure white
+          1: "#fafafa", // Zinc 50
+          2: "#f4f4f5", // Zinc 100
+          3: "#e4e4e7", // Zinc 200
         },
         ink: {
-          primary: "#0f172a",
-          secondary: "#475569",
-          muted: "#94a3b8",
-          disabled: "#cbd5e1",
+          primary: "#18181b", // Zinc 900
+          secondary: "#52525b", // Zinc 600
+          muted: "#a1a1aa", // Zinc 400
+          disabled: "#d4d4d8", // Zinc 300
         },
       },
       fontFamily: {
@@ -35,16 +35,21 @@ module.exports = {
         "2xs": ["0.625rem", { lineHeight: "1rem" }],
       },
       boxShadow: {
-        card: "0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04)",
-        "card-hover": "0 4px 16px 0 rgba(0,0,0,0.08), 0 1px 3px 0 rgba(0,0,0,0.06)",
-        float: "0 8px 30px 0 rgba(0,0,0,0.10), 0 2px 8px 0 rgba(0,0,0,0.06)",
-        inner: "inset 0 1px 2px 0 rgba(0,0,0,0.05)",
-        glow: "0 0 0 3px rgba(99,102,241,0.20)",
+        sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        md: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+        card: "0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)",
+        "card-hover": "0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+        float: "0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)",
+        inner: "inset 0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        glow: "0 0 0 2px rgba(99,102,241,0.2)",
       },
       borderRadius: {
+        sm: "0.125rem",
+        md: "0.375rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
         "2xl": "1rem",
         "3xl": "1.5rem",
-        "4xl": "2rem",
       },
       animation: {
         "fade-up": "fadeUp 0.35s ease-out both",

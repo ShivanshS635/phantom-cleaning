@@ -5,31 +5,49 @@ import { showSuccess, showError } from '../../utils/toast';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
+const defaultFormData = {
+    employee: '',
+    state: 'Sydney',
+    weekStartDate: '',
+    weekEndDate: '',
+    year: new Date().getFullYear(),
+    month: new Date().getMonth() + 1,
+    weekNumber: 1,
+    dailyBreakdown: {
+        monday: { hours: 0, amount: 0 },
+        tuesday: { hours: 0, amount: 0 },
+        wednesday: { hours: 0, amount: 0 },
+        thursday: { hours: 0, amount: 0 },
+        friday: { hours: 0, amount: 0 },
+        saturday: { hours: 0, amount: 0 },
+        sunday: { hours: 0, amount: 0 }
+    },
+    baseSalary: 0,
+    bonuses: [],
+    deductions: [],
+    totalAmount: 0,
+    status: 'Unpaid',
+    paymentMethod: 'Bank Transfer'
+};
+
+export default function AddSalaryModal({ isOpen, onClose, onSuccess, initialData }) {
+    const isEditing = !!initialData;
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        employee: '',
-        state: 'Sydney',
-        weekStartDate: '',
-        weekEndDate: '',
-        year: new Date().getFullYear(),
-        weekNumber: 1,
-        dailyBreakdown: {
-            monday: { hours: 0, amount: 0 },
-            tuesday: { hours: 0, amount: 0 },
-            wednesday: { hours: 0, amount: 0 },
-            thursday: { hours: 0, amount: 0 },
-            friday: { hours: 0, amount: 0 },
-            saturday: { hours: 0, amount: 0 },
-            sunday: { hours: 0, amount: 0 }
-        },
-        baseSalary: 0,
-        bonuses: [],
-        deductions: [],
-        totalAmount: 0,
-        status: 'Unpaid',
-        paymentMethod: 'Bank Transfer'
+    const [formData, setFormData] = useState(() => {
+        if (initialData) {
+            // Format weekStartDate for input[type=date]
+            const startDate = initialData.weekStartDate
+                ? new Date(initialData.weekStartDate).toISOString().split('T')[0]
+                : '';
+            return {
+                ...defaultFormData,
+                ...initialData,
+                employee: initialData.employee?._id || initialData.employee,
+                weekStartDate: startDate,
+            };
+        }
+        return defaultFormData;
     });
 
     useEffect(() => {
@@ -47,20 +65,25 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
     // Set week end date automatically based on start date
     useEffect(() => {
         if (formData.weekStartDate) {
-            const start = new Date(formData.weekStartDate);
-            const end = new Date(start);
-            end.setDate(start.getDate() + 6);
+            // Parse date parts directly to avoid UTC→local timezone shift
+            const [y, m, d] = formData.weekStartDate.split('-').map(Number);
+            //const start = new Date(y, m - 1, d); // local time, no UTC shift
 
-            // Calculate week number
-            const firstDayOfYear = new Date(start.getFullYear(), 0, 1);
-            const pastDaysOfYear = (start - firstDayOfYear) / 86400000;
-            const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+            const end = new Date(y, m - 1, d + 6);
+
+            // Week of Month: which week within the month does this date fall in?
+            const firstDayOfMonth = new Date(y, m - 1, 1);
+            const weekNum = Math.ceil((d + firstDayOfMonth.getDay()) / 7);
+
+            const pad = n => String(n).padStart(2, '0');
+            const endStr = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
 
             setFormData(prev => ({
                 ...prev,
-                weekEndDate: end.toISOString().split('T')[0],
+                weekEndDate: endStr,
                 weekNumber: weekNum,
-                year: start.getFullYear()
+                month: m,
+                year: y
             }));
         }
     }, [formData.weekStartDate]);
@@ -90,8 +113,13 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
 
         try {
             setLoading(true);
-            await api.post('/salary', formData);
-            showSuccess("Salary record created");
+            if (isEditing) {
+                await api.put(`/salary/${initialData._id}`, formData);
+                showSuccess("Salary record updated");
+            } else {
+                await api.post('/salary', formData);
+                showSuccess("Salary record created");
+            }
             onSuccess();
         } catch (err) {
             showError(err.response?.data?.message || "Failed to save record");
@@ -115,22 +143,22 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ink-primary/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-surface-0 w-full max-w-5xl max-h-[95vh] flex flex-col rounded-2xl border border-surface-3 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-ink-primary/30 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-surface-0 w-full max-w-5xl max-h-[98vh] sm:max-h-[95vh] flex flex-col rounded-2xl border border-surface-3 shadow-float animate-in zoom-in-95 duration-300 overflow-hidden">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-surface-3 flex justify-between items-center bg-surface-1 shrink-0">
+                <div className="px-6 py-5 border-b border-surface-3 flex justify-between items-center bg-surface-1 shrink-0">
                     <div>
-                        <h2 className="text-lg font-bold text-ink-primary tracking-tight">Generate Payroll</h2>
-                        <p className="text-[10px] text-ink-muted font-bold uppercase tracking-widest mt-0.5">Weekly Salary Entry</p>
+                        <h2 className="text-xl font-bold text-ink-primary tracking-tight">{isEditing ? 'Edit Payroll' : 'Generate Payroll'}</h2>
+                        <p className="text-[10px] text-ink-muted font-bold uppercase tracking-widest mt-0.5">{isEditing ? 'Update existing record' : 'Weekly Salary Entry'}</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-surface-2 rounded-xl text-ink-muted transition-all">
                         <X size={20} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
                     {/* Basic Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-surface-1/50 p-5 rounded-xl border border-surface-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 bg-surface-1/50 p-4 sm:p-5 rounded-xl border border-surface-3">
                         <div className="space-y-1.5">
                             <label className="text-[11px] font-bold text-ink-secondary uppercase tracking-wider flex items-center gap-2">
                                 <User size={12} className="text-brand-600" /> Employee
@@ -187,8 +215,8 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                             <span className="text-[10px] text-ink-muted font-normal lowercase ml-2">(Enter total payout earned for each day)</span>
                         </div>
 
-                        <div className="bg-surface-0 rounded-xl border border-surface-3 overflow-hidden shadow-sm">
-                            <table className="w-full border-collapse">
+                        <div className="bg-surface-0 rounded-xl border border-surface-3 overflow-x-auto overflow-y-hidden shadow-sm">
+                            <table className="w-full border-collapse min-w-[300px]">
                                 <thead className="bg-surface-1 text-[10px] font-bold text-ink-muted uppercase tracking-widest">
                                     <tr>
                                         <th className="py-3 px-6 font-bold border-r border-surface-3 text-left">Day</th>
@@ -198,10 +226,10 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                                 <tbody className="divide-y divide-surface-3">
                                     {DAYS.map(day => (
                                         <tr key={day} className="group hover:bg-surface-1/50 transition-colors">
-                                            <td className="py-3 px-6 text-[11px] font-bold text-ink-secondary uppercase tracking-widest border-r border-surface-3 w-48 bg-surface-1/30">
+                                            <td className="py-2.5 sm:py-3 px-4 sm:px-6 text-[10px] sm:text-[11px] font-bold text-ink-secondary uppercase tracking-widest border-r border-surface-3 w-32 sm:w-48 bg-surface-1/30">
                                                 {day}
                                             </td>
-                                            <td className="py-2 px-6">
+                                            <td className="py-2 px-4 sm:px-6">
                                                 <div className="flex items-center justify-center gap-3">
                                                     <span className="text-xs text-emerald-600/50 font-bold">$</span>
                                                     <input
@@ -230,10 +258,10 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="bg-surface-0 rounded-xl border border-surface-3 p-5 space-y-4 shadow-sm">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-[10px] font-bold text-ink-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <Plus size={12} className="text-emerald-600" /> Bonuses
+                                <h3 className="text-xs font-bold text-ink-primary uppercase tracking-widest flex items-center gap-2">
+                                    <Plus size={16} className="text-emerald-500" /> Bonuses
                                 </h3>
-                                <button type="button" onClick={addBonus} className="text-[10px] font-bold text-brand-600 hover:text-brand-700 uppercase tracking-wider transition-colors">
+                                <button type="button" onClick={addBonus} className="text-[11px] font-bold text-brand-600 hover:text-brand-700 uppercase tracking-wider transition-colors">
                                     + Add Item
                                 </button>
                             </div>
@@ -270,10 +298,10 @@ export default function AddSalaryModal({ isOpen, onClose, onSuccess }) {
 
                         <div className="bg-surface-0 rounded-xl border border-surface-3 p-5 space-y-4 shadow-sm">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-[10px] font-bold text-ink-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <X size={12} className="text-rose-600" /> Deductions
+                                <h3 className="text-xs font-bold text-ink-primary uppercase tracking-widest flex items-center gap-2">
+                                    <X size={16} className="text-red-500" /> Deductions
                                 </h3>
-                                <button type="button" onClick={addDeduction} className="text-[10px] font-bold text-rose-600 hover:text-rose-700 uppercase tracking-wider transition-colors">
+                                <button type="button" onClick={addDeduction} className="text-[11px] font-bold text-red-600 hover:text-red-700 uppercase tracking-wider transition-colors">
                                     + Add Item
                                 </button>
                             </div>

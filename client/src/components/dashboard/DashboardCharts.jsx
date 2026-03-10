@@ -45,63 +45,64 @@ export default function DashboardCharts({ jobs, employees, expenses }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
+    <div className="card overflow-hidden">
       {/* Chart Header */}
-      <div className="border-b border-gray-200 p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="border-b border-surface-3 bg-surface-1 p-5 sm:p-6 shrink-0">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{getChartTitle()} Overview</h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <h3 className="text-lg font-bold text-ink-primary">{getChartTitle()} Overview</h3>
+            <p className="text-sm font-medium text-ink-muted mt-1">
               Visual representation of your business metrics
             </p>
           </div>
-          
+
           {/* Chart View Toggle */}
           <div className="flex flex-wrap gap-2">
-            {chartViews.map((view) => (
-              <button
-                key={view.id}
-                onClick={() => setActiveView(view.id)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeView === view.id
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                <view.icon size={16} />
-                {view.label}
-              </button>
-            ))}
+            <div className="flex overflow-x-auto pb-2 xl:pb-0 hide-scrollbar w-full xl:w-auto gap-2">
+              {chartViews.map((view) => (
+                <button
+                  key={view.id}
+                  onClick={() => setActiveView(view.id)}
+                  className={`inline-flex items-center whitespace-nowrap gap-2 px-4 py-2 rounded-xl text-[11px] uppercase tracking-wider font-bold transition-all shrink-0 ${activeView === view.id
+                    ? "bg-ink-primary text-surface-0 shadow-md"
+                    : "bg-surface-0 border border-surface-3 text-ink-secondary hover:bg-surface-2"
+                    }`}
+                >
+                  <view.icon size={14} />
+                  {view.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Chart Content */}
-      <div className="p-6">
-        <div className="h-[600px]">
+      <div className="p-4 sm:p-6 bg-surface-0 border-b border-surface-3">
+        <div className="h-[400px] sm:h-[500px] lg:h-[600px] min-h-[400px]">
           {renderChart()}
         </div>
       </div>
 
       {/* Chart Info */}
-      <div className="border-t border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="font-medium text-gray-900">Total Data Points</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{jobs.length}</p>
-            <p className="text-gray-600">jobs analyzed</p>
+      <div className="border-t border-surface-3 bg-surface-1 p-5 sm:p-6 shrink-0">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+          <div className="text-center p-4 bg-surface-0 border border-surface-3 rounded-xl shadow-sm">
+            <p className="text-[10px] font-bold text-ink-secondary uppercase tracking-widest">Total Data Points</p>
+            <p className="text-2xl font-bold text-ink-primary mt-1.5">{jobs.length}</p>
+            <p className="text-[10px] font-bold text-ink-muted mt-1 uppercase tracking-widest">jobs analyzed</p>
           </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="font-medium text-gray-900">Time Period</p>
-            <p className="text-lg font-bold text-gray-900 mt-1">Custom Range</p>
-            <p className="text-gray-600">adjustable via filters</p>
+          <div className="text-center p-4 bg-surface-0 border border-surface-3 rounded-xl shadow-sm">
+            <p className="text-[10px] font-bold text-ink-secondary uppercase tracking-widest">Time Period</p>
+            <p className="text-lg font-bold text-ink-primary mt-1.5">Custom Range</p>
+            <p className="text-[10px] font-bold text-ink-muted mt-1 uppercase tracking-widest">adjustable via filters</p>
           </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <p className="font-medium text-gray-900">Last Updated</p>
-            <p className="text-lg font-bold text-gray-900 mt-1">
+          <div className="text-center p-4 bg-surface-0 border border-surface-3 rounded-xl shadow-sm">
+            <p className="text-[10px] font-bold text-ink-secondary uppercase tracking-widest">Last Updated</p>
+            <p className="text-lg font-bold text-ink-primary mt-1.5">
               {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </p>
-            <p className="text-gray-600">live data</p>
+            <p className="text-[10px] font-bold text-brand-600 mt-1 uppercase tracking-widest animate-pulse">live data</p>
           </div>
         </div>
       </div>

@@ -26,38 +26,44 @@ export default function AdminUnlockModal({ onSuccess, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-xl w-[320px]">
-        <h2 className="text-xl font-bold mb-4 text-center">
-          Admin Verification
-        </h2>
+    <div className="fixed inset-0 bg-ink-primary/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+      <div className="bg-surface-0 p-6 sm:p-8 rounded-2xl w-full max-w-sm shadow-2xl border border-surface-3 animate-in zoom-in-95 duration-300">
+        <div className="mb-6 text-center">
+          <div className="w-12 h-12 rounded-xl bg-brand-50 mx-auto flex items-center justify-center mb-4">
+            <span className="text-xl">🔒</span>
+          </div>
+          <h2 className="text-xl font-bold text-ink-primary">
+            Admin Verification
+          </h2>
+          <p className="text-sm text-ink-muted mt-1">Please enter your password to continue</p>
+        </div>
 
         <input
           type="password"
           placeholder="Enter Admin Password"
-          className="w-full border p-2 rounded mb-4"
+          className="input-premium mb-5 text-center tracking-widest text-lg"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && verifyAdmin()}
         />
 
-        <div className="flex gap-2">
-          <button
-            onClick={verifyAdmin}
-            disabled={loading}
-            className="flex-1 bg-black text-white py-2 rounded"
-          >
-            {loading ? "Verifying..." : "Enter"}
-          </button>
-
+        <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 border py-2 rounded"
+            className="flex-1 btn-secondary text-sm"
           >
             Cancel
           </button>
+          <button
+            onClick={verifyAdmin}
+            disabled={loading}
+            className="flex-1 btn-primary text-sm shadow-brand relative"
+          >
+            {loading ? <span className="animate-pulse">Verifying...</span> : "Enter"}
+          </button>
         </div>
 
-        <p className="text-xs text-center mt-3 text-gray-500">
+        <p className="text-[11px] font-medium text-center mt-5 text-ink-muted uppercase tracking-wider">
           Auto-locks after 10 minutes
         </p>
       </div>

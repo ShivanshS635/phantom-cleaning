@@ -98,24 +98,24 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="absolute inset-0 bg-ink-primary/30 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div className="absolute inset-y-0 right-0 w-full max-w-2xl">
-        <div className="h-full bg-white shadow-xl flex flex-col">
+        <div className="h-full bg-surface-0 shadow-float flex flex-col animate-fade-left">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-surface-3 flex items-center justify-between bg-surface-1">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Create New Job</h2>
-              <p className="text-sm text-gray-600 mt-1">Fill in the job details below</p>
+              <h2 className="text-xl font-bold text-ink-primary">Create New Job</h2>
+              <p className="text-sm text-ink-secondary mt-0.5">Fill in the job details below</p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-surface-2 rounded-xl text-ink-muted transition-colors"
             >
-              <X size={20} className="text-gray-500" />
+              <X size={20} />
             </button>
           </div>
 
@@ -124,8 +124,8 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
             <div className="p-6 space-y-8">
               {/* Customer Section */}
               <section>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <User size={20} className="text-gray-400" />
+                <h3 className="text-xs font-bold text-ink-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <User size={16} className="text-ink-muted" />
                   Customer Details
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -137,7 +137,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                       name="customerName"
                       value={form.customerName}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                      className="input-premium"
                       placeholder="John Smith"
                       required
                     />
@@ -153,7 +153,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                         type="tel"
                         value={form.phone}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                        className="input-premium pl-10"
                         placeholder="+61 400 000 000"
                         required
                       />
@@ -170,7 +170,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                         type="email"
                         value={form.email}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                        className="input-premium pl-10"
                         placeholder="john@example.com"
                       />
                     </div>
@@ -180,8 +180,8 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
 
               {/* Location Section */}
               <section>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <MapPin size={20} className="text-gray-400" />
+                <h3 className="text-xs font-bold text-ink-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <MapPin size={16} className="text-ink-muted" />
                   Location
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -195,7 +195,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                         name="address"
                         value={form.address}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                        className="input-premium pl-10"
                         placeholder="123 Main Street"
                         required
                       />
@@ -209,7 +209,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                       name="city"
                       value={form.city}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                      className="input-premium"
                       placeholder="Suburb"
                     />
                   </div>
@@ -221,7 +221,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                       name="state"
                       value={form.state}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                      className="input-premium"
                       required
                     >
                       {states.map(state => (
@@ -234,8 +234,8 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
 
               {/* Schedule Section */}
               <section>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Calendar size={20} className="text-gray-400" />
+                <h3 className="text-xs font-bold text-ink-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Calendar size={16} className="text-ink-muted" />
                   Schedule
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -250,7 +250,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                         name="date"
                         value={form.date}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                        className="input-premium pl-10"
                         required
                       />
                     </div>
@@ -266,7 +266,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                         name="time"
                         value={form.time}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                        className="input-premium pl-10"
                         required
                       />
                     </div>
@@ -283,7 +283,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                         min="1"
                         value={form.estTime}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                        className="input-premium pl-10"
                         placeholder="2"
                       />
                     </div>
@@ -293,8 +293,8 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
 
               {/* Job Details Section */}
               <section>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <FileText size={20} className="text-gray-400" />
+                <h3 className="text-xs font-bold text-ink-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <FileText size={16} className="text-ink-muted" />
                   Job Details
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -306,7 +306,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                       name="workType"
                       value={form.workType}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                      className="input-premium"
                     >
                       {workTypes.map(type => (
                         <option key={type} value={type}>{type}</option>
@@ -326,7 +326,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                         step="0.01"
                         value={form.price}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                        className="input-premium pl-10"
                         placeholder="150.00"
                       />
                     </div>
@@ -339,7 +339,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                       name="areas"
                       value={form.areas}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                      className="input-premium"
                       placeholder="Living room, 3 bedrooms, 2 bathrooms"
                     />
                   </div>
@@ -352,7 +352,7 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                       value={form.notes}
                       onChange={handleChange}
                       rows="3"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-none"
+                      className="input-premium resize-none"
                       placeholder="Special instructions or requirements..."
                     />
                   </div>
@@ -362,28 +362,28 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
               {/* Assignment Section */}
               <section>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <User size={20} className="text-gray-400" />
+                  <h3 className="text-xs font-bold text-ink-primary uppercase tracking-widest flex items-center gap-2">
+                    <User size={16} className="text-ink-muted" />
                     Assignment
                   </h3>
                   <button
                     type="button"
                     onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="text-sm text-gray-600 hover:text-gray-900"
+                    className="text-xs font-medium text-ink-secondary hover:text-ink-primary transition-colors"
                   >
                     {showAdvanced ? "Hide advanced" : "Show advanced"}
                   </button>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-ink-secondary mb-2">
                     Assign Cleaner (Optional)
                   </label>
                   <select
                     name="assignedEmployee"
                     value={form.assignedEmployee}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="input-premium appearance-none"
                   >
                     <option value="">Select a cleaner</option>
                     {employees
@@ -397,19 +397,19 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                 </div>
 
                 {showAdvanced && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
-                    <p className="text-sm font-medium text-gray-900">Advanced Options</p>
+                  <div className="mt-4 p-4 bg-surface-1 rounded-xl border border-surface-3 space-y-3">
+                    <p className="text-sm font-semibold text-ink-primary">Advanced Options</p>
                     {/* Add any advanced options here */}
                   </div>
                 )}
               </section>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-6 border-t border-gray-200">
+              <div className="flex gap-3 pt-6 border-t border-surface-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className="btn-secondary flex-1"
                   disabled={loading}
                 >
                   Cancel
@@ -417,10 +417,10 @@ export default function JobFormDrawer({ onClose, onSuccess }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                  className="btn-primary flex-1 shadow-brand inline-flex items-center justify-center gap-2"
                 >
-                  {loading && <Loader2 size={20} className="animate-spin" />}
-                  <PlusCircle size={20} />
+                  {loading && <Loader2 size={18} className="animate-spin" />}
+                  {!loading && <PlusCircle size={18} />}
                   Create Job
                 </button>
               </div>

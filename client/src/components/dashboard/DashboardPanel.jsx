@@ -141,8 +141,8 @@ export default function DashboardPanel({ onLock }) {
   }
 
   return (
-    <div className="min-h-screen bg-surface-1">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-surface-1 p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
         {/* ── Header ── */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -157,7 +157,7 @@ export default function DashboardPanel({ onLock }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={fetchAllData}
               disabled={refreshLoading}
@@ -187,7 +187,7 @@ export default function DashboardPanel({ onLock }) {
               <SlidersHorizontal size={15} />
               <span className="text-xs font-medium">Filters</span>
             </div>
-            <div className="flex flex-wrap gap-3 flex-1">
+            <div className="flex flex-wrap items-center gap-3 flex-1">
               <DashboardFilters
                 from={dateRange.from}
                 to={dateRange.to}
@@ -199,7 +199,7 @@ export default function DashboardPanel({ onLock }) {
                 <select
                   value={selectedState}
                   onChange={(e) => setSelectedState(e.target.value)}
-                  className="pl-8 pr-3 py-2 text-sm border border-surface-3 rounded-xl bg-surface-0 text-ink-primary focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 appearance-none"
+                  className="input-premium pl-8 pr-3 py-2 text-sm max-w-[140px] appearance-none"
                 >
                   <option value="All">All States</option>
                   {STATES.map(s => <option key={s} value={s}>{s}</option>)}

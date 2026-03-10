@@ -105,7 +105,7 @@ const salarySchema = new mongoose.Schema(
 );
 
 // Compound unique index to prevent duplicate entries for the same employee in the same week
-salarySchema.index({ employee: 1, weekNumber: 1, year: 1 }, { unique: true });
+salarySchema.index({ employee: 1, year: 1, month: 1, weekNumber: 1 }, { unique: true });
 
 // Performance indexes
 salarySchema.index({ state: 1 });

@@ -130,14 +130,14 @@ export default function TaskPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-surface-0 p-4 md:p-6 sm:p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Task Timeline</h1>
-              <p className="text-gray-600 mt-2">Manage and monitor daily cleaning jobs</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-ink-primary">Task Timeline</h1>
+              <p className="text-sm md:text-base text-ink-muted mt-1 md:mt-2">Manage and monitor daily cleaning jobs</p>
             </div>
           </div>
 
@@ -146,42 +146,42 @@ export default function TaskPanel() {
         </div>
 
         {/* Date Navigation & Controls */}
-        <div className="bg-white rounded-2xl shadow border border-gray-200 p-4 mb-6">
+        <div className="bg-surface-0 rounded-2xl shadow-sm border border-surface-3 p-4 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Date Navigation */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigateDate(-1)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-surface-2 rounded-xl transition-all"
               >
-                <ChevronLeft size={20} className="text-gray-600" />
+                <ChevronLeft size={20} className="text-ink-secondary" />
               </button>
 
               <div className="flex items-center gap-2">
-                <Calendar size={20} className="text-gray-400" />
-                <span className="font-semibold text-gray-900">
+                <Calendar size={20} className="text-brand-600" />
+                <span className="font-bold text-ink-primary">
                   {formatDateDisplay(date)}
                 </span>
               </div>
 
               <button
                 onClick={() => navigateDate(1)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-surface-2 rounded-xl transition-all"
               >
-                <ChevronRight size={20} className="text-gray-600" />
+                <ChevronRight size={20} className="text-ink-secondary" />
               </button>
 
               <button
                 onClick={() => setDate(new Date().toISOString().split("T")[0])}
-                className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                className="text-xs font-bold uppercase tracking-wider text-ink-secondary hover:text-ink-primary px-3 py-1.5 hover:bg-surface-2 rounded-xl transition-all"
               >
                 Today
               </button>
             </div>
 
             {/* View Controls */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center border border-surface-3 rounded-xl overflow-hidden bg-surface-1">
                 <button
                   onClick={() => setViewMode("timeline")}
                   className={`p-2 ${viewMode === "timeline" ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"}`}
@@ -204,7 +204,7 @@ export default function TaskPanel() {
 
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="inline-flex items-center gap-2 border border-surface-3 bg-surface-1 text-ink-secondary px-4 py-2 rounded-xl hover:bg-surface-2 transition-all text-sm font-semibold"
               >
                 <Filter size={16} />
                 Filters
@@ -219,16 +219,16 @@ export default function TaskPanel() {
 
           {/* Filters Panel */}
           {showFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-surface-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-2 block">
                     Status
                   </label>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="input-premium"
                   >
                     <option value="all">All Statuses</option>
                     <option value="Pending">Pending</option>
@@ -238,13 +238,13 @@ export default function TaskPanel() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="text-[11px] font-bold text-ink-secondary uppercase tracking-wider mb-2 block">
                     Priority
                   </label>
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="input-premium"
                   >
                     <option value="all">All Priorities</option>
                     <option value="High">High</option>
@@ -259,7 +259,7 @@ export default function TaskPanel() {
 
         {/* Timeline View */}
         {viewMode === "timeline" && (
-          <div className="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
+          <div className="bg-surface-0 rounded-2xl shadow-sm border border-surface-3 overflow-hidden">
             {/* Timeline Header */}
             <div className="border-b border-gray-200 px-6 py-4">
               <div className="flex items-center justify-between">
@@ -330,38 +330,38 @@ export default function TaskPanel() {
 
         {/* Grid View */}
         {viewMode === "grid" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredTasks.map((task) => (
               <div
                 key={task._id}
                 onClick={() => setActiveTask(task)}
-                className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                className="bg-surface-0 border border-surface-3 rounded-2xl p-4 hover:border-brand-500/30 hover:shadow-lg transition-all cursor-pointer group"
               >
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{task.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="min-w-0 pr-3">
+                    <h3 className="font-bold text-ink-primary truncate group-hover:text-brand-600 transition-colors">{task.title}</h3>
+                    <p className="text-[11px] font-medium text-ink-muted uppercase tracking-wider mt-1">
                       {task.job?.time || "All day"}
                     </p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${task.status === "Completed"
-                    ? "bg-green-100 text-green-700"
+                  <span className={`text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-full shrink-0 ${task.status === "Completed"
+                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200/50"
                     : task.status === "In Progress"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-yellow-100 text-yellow-700"
+                      ? "bg-brand-50 text-brand-700 border border-brand-200/50"
+                      : "bg-amber-100 text-amber-800 border border-amber-200/50"
                     }`}>
                     {task.status}
                   </span>
                 </div>
 
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <MapPin size={14} />
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex items-center gap-2.5 text-ink-secondary bg-surface-1 py-1.5 px-3 rounded-lg border border-surface-3">
+                    <MapPin size={14} className="shrink-0 text-brand-500" />
                     <span className="truncate">{task.job?.address || "No address"}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <User size={14} />
-                    <span>{task.assignedTo?.name || "Unassigned"}</span>
+                  <div className="flex items-center gap-2.5 text-ink-secondary bg-surface-1 py-1.5 px-3 rounded-lg border border-surface-3">
+                    <User size={14} className="shrink-0 text-brand-500" />
+                    <span className="truncate">{task.assignedTo?.name || "Unassigned"}</span>
                   </div>
                 </div>
               </div>
@@ -371,70 +371,72 @@ export default function TaskPanel() {
 
         {/* List View */}
         {viewMode === "list" && (
-          <div className="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left p-4 font-medium text-gray-900">Task</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Time</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Location</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Assigned To</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Status</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Priority</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredTasks.map((task) => (
-                  <tr
-                    key={task._id}
-                    onClick={() => setActiveTask(task)}
-                    className="hover:bg-gray-50 cursor-pointer"
-                  >
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium text-gray-900">{task.title}</p>
-                        <p className="text-sm text-gray-600 truncate max-w-xs">
-                          {task.description}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-4 text-gray-700">{task.job?.time || "--"}</td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <MapPin size={14} className="text-gray-400" />
-                        <span className="text-gray-700">{task.job?.address || "--"}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <User size={14} className="text-gray-400" />
-                        <span className="text-gray-700">{task.assignedTo?.name || "--"}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span className={`inline-block text-xs px-3 py-1 rounded-full ${task.status === "Completed"
-                        ? "bg-green-100 text-green-700"
-                        : task.status === "In Progress"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-yellow-100 text-yellow-700"
-                        }`}>
-                        {task.status}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className={`inline-block text-xs px-3 py-1 rounded-full ${task.priority === "High"
-                        ? "bg-red-100 text-red-700"
-                        : task.priority === "Medium"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-blue-100 text-blue-700"
-                        }`}>
-                        {task.priority || "Medium"}
-                      </span>
-                    </td>
+          <div className="bg-surface-0 rounded-2xl shadow-sm border border-surface-3 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-surface-3 bg-surface-1">
+                    <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Task</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Time</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Location</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Assigned To</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Priority</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-surface-3">
+                  {filteredTasks.map((task) => (
+                    <tr
+                      key={task._id}
+                      onClick={() => setActiveTask(task)}
+                      className="table-row-hover cursor-pointer"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="min-w-[150px]">
+                          <p className="font-bold text-ink-primary">{task.title}</p>
+                          <p className="text-xs text-ink-muted truncate max-w-xs mt-0.5">
+                            {task.description}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-ink-secondary">{task.job?.time || "--"}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 min-w-[120px]">
+                          <MapPin size={14} className="text-brand-500 shrink-0" />
+                          <span className="text-sm font-medium text-ink-secondary truncate">{task.job?.address || "--"}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 min-w-[100px]">
+                          <User size={14} className="text-brand-500 shrink-0" />
+                          <span className="text-sm font-medium text-ink-secondary truncate">{task.assignedTo?.name || "--"}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-block text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-full ${task.status === "Completed"
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-200/50"
+                          : task.status === "In Progress"
+                            ? "bg-brand-50 text-brand-700 border border-brand-200/50"
+                            : "bg-amber-100 text-amber-800 border border-amber-200/50"
+                          }`}>
+                          {task.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-block text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-full ${task.priority === "High"
+                          ? "bg-rose-100 text-rose-800 border border-rose-200/50"
+                          : task.priority === "Medium"
+                            ? "bg-amber-100 text-amber-800 border border-amber-200/50"
+                            : "bg-blue-100 text-blue-800 border border-blue-200/50"
+                          }`}>
+                          {task.priority || "Medium"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

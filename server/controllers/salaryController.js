@@ -8,11 +8,18 @@ const ExcelJS = require("exceljs");
 exports.getSalaries = async (req, res) => {
 
     try {
-        const { state, month, year, status, page = 1, limit = 50 } = req.query;
+        const { state, month, year, status, search, page = 1, limit = 50 } = req.query;
         let filter = {};
 
         if (state && state !== "all") filter.state = state;
         if (status && status !== "all") filter.status = status;
+
+        // If searching by name, we need to find employee IDs first
+        if (search) {
+            const employees = await Employee.find({ name: { $regex: search, $options: 'i' } }).select('_id');
+            const employeeIds = employees.map(e => e._id);
+            filter.employee = { $in: employeeIds };
+        }
 
         if (month && year) {
             const startOfMonth = new Date(year, month - 1, 1);

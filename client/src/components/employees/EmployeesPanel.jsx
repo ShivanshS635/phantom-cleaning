@@ -257,25 +257,37 @@ export default function EmployeesPanel() {
         {/* ── Table ── */}
         <div className="card overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center h-64">
+            <div className="flex items-center justify-center p-16">
               <div className="text-center space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-brand-600/10 flex items-center justify-center mx-auto">
-                  <Loader2 size={20} className="text-brand-600 animate-spin" />
+                <div className="w-10 h-10 rounded-xl bg-surface-2 flex items-center justify-center mx-auto">
+                  <Loader2 size={20} className="text-ink-muted animate-spin" />
                 </div>
-                <p className="text-sm text-ink-muted">Loading team members…</p>
+                <p className="text-sm font-medium text-ink-secondary">Loading team members…</p>
               </div>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center p-16">
+              <div className="w-16 h-16 rounded-full bg-surface-1 border border-surface-3 flex items-center justify-center mb-5">
+                <Users size={28} className="text-ink-muted" />
+              </div>
+              <h3 className="text-lg font-bold text-ink-primary mb-1.5">No employees found</h3>
+              <p className="text-sm font-medium text-ink-secondary max-w-sm">
+                {searchTerm || filterRole !== "All" || filterState !== "All"
+                  ? "Try adjusting your search or filters to find what you're looking for."
+                  : "Get started by adding your first team member."}
+              </p>
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full text-left min-w-[750px]">
                   <thead>
                     <tr className="border-b border-surface-3 bg-surface-1">
-                      <th className="py-3 px-5 text-left text-xs font-semibold text-ink-muted uppercase tracking-wider">Employee</th>
-                      <th className="py-3 px-5 text-left text-xs font-semibold text-ink-muted uppercase tracking-wider">Contact</th>
-                      <th className="py-3 px-5 text-left text-xs font-semibold text-ink-muted uppercase tracking-wider">Role</th>
-                      <th className="py-3 px-5 text-left text-xs font-semibold text-ink-muted uppercase tracking-wider">Location</th>
-                      <th className="py-3 px-5 text-right text-xs font-semibold text-ink-muted uppercase tracking-wider">Actions</th>
+                      <th className="py-3 px-5 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Employee</th>
+                      <th className="py-3 px-5 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Contact</th>
+                      <th className="py-3 px-5 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Role</th>
+                      <th className="py-3 px-5 text-[10px] font-bold text-ink-muted uppercase tracking-wider">Location</th>
+                      <th className="py-3 px-5 text-right text-[10px] font-bold text-ink-muted uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-surface-3">
@@ -312,17 +324,17 @@ export default function EmployeesPanel() {
                           </div>
                         </td>
                         <td className="py-3.5 px-5">
-                          <span className={`badge border ${ROLE_BADGE[emp.role] || "bg-surface-2 text-ink-secondary border-surface-3"}`}>
+                          <span className={`badge border text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full ${ROLE_BADGE[emp.role] || "bg-surface-2 text-ink-secondary border-surface-3"}`}>
                             {emp.role}
                           </span>
                         </td>
                         <td className="py-3.5 px-5">
-                          <div className="flex items-center gap-1.5">
-                            <MapPin size={13} className="text-ink-muted" />
-                            <span className="text-sm text-ink-secondary">{emp.state}</span>
+                          <div className="flex items-center gap-1.5 text-ink-secondary bg-surface-1 py-1 px-2.5 rounded-lg border border-surface-3 w-fit">
+                            <MapPin size={12} className="text-brand-500 shrink-0" />
+                            <span className="text-xs truncate">{emp.state}</span>
                           </div>
                         </td>
-                        <td className="py-3.5 px-5">
+                        <td className="py-3.5 px-5 text-right">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => handleEdit(emp)} className="p-1.5 rounded-lg hover:bg-brand-50 hover:text-brand-600 text-ink-muted transition-colors" title="Edit">
                               <Edit2 size={15} />
@@ -358,15 +370,15 @@ export default function EmployeesPanel() {
               )}
 
               {filtered.length > 0 && (
-                <div className="px-5 py-3 border-t border-surface-3 bg-surface-1 flex items-center justify-between">
+                <div className="px-5 py-4 border-t border-surface-3 bg-surface-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <p className="text-xs text-ink-muted">
-                    Showing <span className="font-semibold text-ink-primary">{filtered.length}</span> of <span className="font-semibold text-ink-primary">{employees.length}</span> employees
+                    Showing <span className="font-bold text-ink-primary">{filtered.length}</span> of <span className="font-bold text-ink-primary">{employees.length}</span> employees
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {["Cleaner", "Manager", "HR"].map(role => {
                       const count = employees.filter(e => e.role === role).length;
                       return count > 0 ? (
-                        <span key={role} className={`badge border text-xs ${ROLE_BADGE[role]}`}>
+                        <span key={role} className={`badge border text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 ${ROLE_BADGE[role]}`}>
                           {count} {role}
                         </span>
                       ) : null;

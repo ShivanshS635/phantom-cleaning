@@ -21,8 +21,11 @@
 
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #fafafa;
+    /* Zinc 50 */
+    color: #18181b;
+    /* Zinc 900 */
+    -webkit-font-smoothing: antialiased;
   }
 
   /* Scrollbar */
@@ -36,12 +39,14 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: #e4e4e7;
+    /* Zinc 200 */
     border-radius: 99px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: #a1a1aa;
+    /* Zinc 400 */
   }
 }
 
@@ -51,9 +56,9 @@
   /* Skeleton shimmer */
   .skeleton {
     background: linear-gradient(90deg,
-        #f1f5f9 25%,
-        #e2e8f0 50%,
-        #f1f5f9 75%);
+        #f4f4f5 25%,
+        #e4e4e7 50%,
+        #f4f4f5 75%);
     background-size: 600px 100%;
     animation: shimmer 1.6s linear infinite;
     border-radius: 0.5rem;
@@ -61,47 +66,51 @@
 
   /* Premium input */
   .input-premium {
-    @apply w-full rounded-xl border border-surface-3 bg-surface-1 px-4 py-3 text-sm text-ink-primary placeholder-ink-muted transition-all duration-200 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 hover:border-ink-disabled;
+    @apply w-full rounded-lg border border-surface-3 bg-surface-0 px-3 py-2 text-sm text-ink-primary placeholder-ink-muted transition-all duration-200 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 hover:border-ink-muted shadow-sm;
   }
 
   /* Premium button primary */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-medium text-sm px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm;
   }
 
   /* Premium button secondary */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-surface-0 hover:bg-surface-1 active:bg-surface-2 text-ink-primary font-medium text-sm border border-surface-3 px-5 py-2.5 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20;
+    @apply inline-flex items-center justify-center gap-2 bg-surface-0 hover:bg-surface-1 active:bg-surface-2 text-ink-primary font-medium text-sm border border-surface-3 px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:ring-offset-1 shadow-sm;
+  }
+
+  /* Premium button danger */
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-medium text-sm px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm;
   }
 
   /* Premium card */
   .card {
-    @apply bg-surface-0 rounded-2xl border border-surface-3 shadow-card;
+    @apply bg-surface-0 rounded-xl border border-surface-3 shadow-sm;
   }
 
   /* Stat card */
   .stat-card {
-    @apply card p-5 hover:shadow-card-hover transition-shadow duration-200;
+    @apply card p-5 hover:shadow-md transition-shadow duration-200;
   }
 
   /* Nav item */
   .nav-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 transition-all duration-200 hover:bg-white/8 hover:text-white;
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-ink-secondary transition-all duration-200 hover:bg-surface-2 hover:text-ink-primary;
   }
 
   .nav-item-active {
-    @apply nav-item bg-white/10 text-white;
-    box-shadow: inset 3px 0 0 #6366f1;
+    @apply nav-item bg-surface-2 text-ink-primary shadow-sm border border-surface-3;
   }
 
   /* Table */
   .table-row-hover {
-    @apply hover:bg-surface-1 transition-colors duration-150;
+    @apply hover:bg-surface-1/50 transition-colors duration-150;
   }
 
   /* Badge base */
   .badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium border;
   }
 }
 
@@ -129,13 +138,14 @@
   }
 
   .glass {
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .sidebar-bg {
-    background: linear-gradient(160deg, #0f172a 0%, #1e1b4b 100%);
+    background: #18181b;
+    /* Zinc 900 */
   }
 }
 
